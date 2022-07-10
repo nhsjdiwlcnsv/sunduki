@@ -22,7 +22,6 @@ class ActionShaper(gym.ActionWrapper, ABC):
             [('right', 1)],
             [('jump', 1)],
             [('forward', 1), ('jump', 1)],
-            # [('forward', 1), ('attack', 1)],
             [('camera', [-self.camera_angle, 0])],
             [('camera', [self.camera_angle, 0])],
             [('camera', [0, self.camera_angle])],
@@ -52,7 +51,7 @@ def normalize_actions(actions, batch_size):
     left_actions = actions["left"].squeeze()
     right_actions = actions["right"].squeeze()
     jump_actions = actions["jump"].squeeze()
-    batch_size = len(camera_actions)
+
     actions = np.zeros((batch_size,), dtype=np.int)
 
     for i in range(len(camera_actions)):
@@ -73,6 +72,9 @@ def normalize_actions(actions, batch_size):
             else:
                 actions[i] = 1
 
+        elif jump_actions[i] == 1:
+            actions[i] = 5
+
         # Then other navigation actions
         elif back_actions[i] == 1:
             actions[i] = 2
@@ -80,9 +82,6 @@ def normalize_actions(actions, batch_size):
             actions[i] = 3
         elif right_actions[i] == 1:
             actions[i] = 4
-
-        elif jump_actions[i] == 1:
-            actions[i] = 5
 
         # Attacking has the lowest priority
         elif attack_actions[i] == 1:
@@ -106,7 +105,11 @@ def main():
         layers.MaxPooling2D((2, 2)),
 
         # Third convolutional layer
-        layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'),
+        layers.Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same'),
+        layers.MaxPooling2D((2, 2)),
+
+        # Fourth convolutional layer
+        layers.Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same'),
         layers.MaxPooling2D((2, 2)),
 
         layers.Flatten(),
@@ -118,16 +121,17 @@ def main():
 
     # Model's parameters
     optimizer = optimizers.Adam(learning_rate=1e-3)  # How fast the model learns
-    loss = losses.SparseCategoricalCrossentropy(from_logits=True)  # How to calculate the loss
+    loss = losses.SparseCategoricalCrossentropy(from_logits=True)  # The loss function
     training_metrics = ['accuracy']  # What metrics to track during training
 
+    # Load the MineRLTreechop-v0 dataset and create a batch iterator
     data = minerl.data.make('MineRLTreechop-v0')
     iterator = BufferedBatchIter(data)
 
     model.compile(optimizer=optimizer, loss=loss, metrics=training_metrics)
 
     # While iterating through the data, iterator feeds the model with the batches of data in order to train it
-    for state, actions, reward, next_state, done in iterator.buffered_batch_iter(batch_size=16384, num_batches=5):
+    for state, actions, reward, next_state, done in iterator.buffered_batch_iter(batch_size=16384, num_batches=3):
         obs = state['pov'].squeeze().astype(np.float) / 255.0
         actions = normalize_actions(actions, len(obs))
 
@@ -164,9 +168,10 @@ def main():
         obs, reward, done, info = env.step(action)
         total_reward += reward
 
-        print("Step: {} Reward: {}".format(step, total_reward))
+        print("Step: {} – Reward: {}".format(step, total_reward))
         print("")
-        print("Inventory:", obs['inventory']['logs'])
+        print("Inventory:", obs['inventory'])
+        print("Action:", action)
 
         if done:
             break
