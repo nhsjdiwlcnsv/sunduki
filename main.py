@@ -172,7 +172,7 @@ def main():
 
         print("Step: {} Reward: {}".format(step, total_reward))
         print("")
-        print("Inventory:", obs['inventory']['logs'])
+        print("Inventory:", obs['inventory'])
 
         if done:
             break
