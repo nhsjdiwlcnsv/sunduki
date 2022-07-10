@@ -10,36 +10,51 @@ from keras import layers, models, optimizers, losses, callbacks
 # This function gets the dictionary of actions and returns a numpy array of active actions during each step
 def normalize_actions(actions, batch_size):
     camera_actions = actions["camera"].squeeze()
-    forward_actions = actions["forward"].squeeze()
-    jump_actions = actions["jump"].squeeze()
     attack_actions = actions["attack"].squeeze()
+    forward_actions = actions["forward"].squeeze()
+    back_actions = actions["back"].squeeze()
+    left_actions = actions["left"].squeeze()
+    right_actions = actions["right"].squeeze()
+    jump_actions = actions["jump"].squeeze()
+    batch_size = len(camera_actions)
+    actions = np.zeros((batch_size,), dtype=np.int)
 
-    # List of all actions (numpy array) for the batch
-    action_batch = np.zeros((batch_size,), dtype=np.int)
+    for i in range(len(camera_actions)):
+        # Moving camera has the highest priority
+        if camera_actions[i][0] < -5:
+            actions[i] = 7
+        elif camera_actions[i][0] > 5:
+            actions[i] = 8
+        elif camera_actions[i][1] > 5:
+            actions[i] = 9
+        elif camera_actions[i][1] < -5:
+            actions[i] = 10
 
-    # Enumerate all actions in the batch according to their priority
-    for i in range(batch_size):
-        if camera_actions[i][0] < 0:
-            action_batch[i] = 4
-        elif camera_actions[i][0] > 0:
-            action_batch[i] = 5
-        elif camera_actions[i][1] > 0:
-            action_batch[i] = 6
-        elif camera_actions[i][1] < 0:
-            action_batch[i] = 7
-        elif attack_actions[i] == 1:
-            action_batch[i] = 1
+        # Then moving forward with/without jump
         elif forward_actions[i] == 1:
-            if jump_actions[i] == 0:
-                action_batch[i] = 1
+            if jump_actions[i] == 1:
+                actions[i] = 6
             else:
-                action_batch[i] = 2
-        elif jump_actions[i] == 1:
-            action_batch[i] = 3
-        else:
-            action_batch[i] = -1
+                actions[i] = 1
 
-    return action_batch
+        # Then other navigation actions
+        elif back_actions[i] == 1:
+            actions[i] = 2
+        elif left_actions[i] == 1:
+            actions[i] = 3
+        elif right_actions[i] == 1:
+            actions[i] = 4
+
+        elif jump_actions[i] == 1:
+            actions[i] = 5
+
+        # Attacking has the lowest priority
+        elif attack_actions[i] == 1:
+            actions[i] = 0
+        else:
+            # No reasonable mapping (will be ignored after applying a mask)
+            actions[i] = -1
+    return actions
 
 
 # Тут допущена ошибка. Правильно было бы написать "deaf main", что означало бы, что главный глухой.
