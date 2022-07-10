@@ -120,8 +120,6 @@ def main():
 
     model.summary()
 
-    model.summary()
-
     # Model's parameters
     optimizer = optimizers.Adam(learning_rate=1e-3)  # How fast the model learns
     loss = losses.SparseCategoricalCrossentropy(from_logits=True)  # How to calculate the loss
@@ -172,7 +170,7 @@ def main():
 
         print("Step: {} Reward: {}".format(step, total_reward))
         print("")
-        print("Inventory:", obs['inventory']['logs'])
+        print("Inventory:", obs['inventory'])
 
         if done:
             break
