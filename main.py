@@ -14,7 +14,7 @@ class ActionShaper(gym.ActionWrapper, ABC):
         super().__init__(env)
 
         self.camera_angle = camera_angle
-        self.dataset_actions = [
+        self._actions = [
             [('attack', 1)],
             [('forward', 1)],
             [('back', 1)],
@@ -30,7 +30,7 @@ class ActionShaper(gym.ActionWrapper, ABC):
         ]
 
         self.actions = []
-        for actions in self.dataset_actions:
+        for actions in self._actions:
             act = self.env.action_space.noop()
             for a, v in actions:
                 act[a] = v
@@ -52,7 +52,7 @@ def normalize_actions(actions, batch_size):
     left_actions = actions["left"].squeeze()
     right_actions = actions["right"].squeeze()
     jump_actions = actions["jump"].squeeze()
-    batch_size = len(camera_actions)
+
     actions = np.zeros((batch_size,), dtype=np.int)
 
     for i in range(len(camera_actions)):
@@ -106,13 +106,19 @@ def main():
         layers.MaxPooling2D((2, 2)),
 
         # Third convolutional layer
-        layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'),
+        layers.Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same'),
+        layers.MaxPooling2D((2, 2)),
+
+        # Fourth convolutional layer
+        layers.Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same'),
         layers.MaxPooling2D((2, 2)),
 
         layers.Flatten(),
         layers.Dense(units=1024, activation='relu'),
         layers.Dense(units=11, activation='softmax')
     ])
+
+    model.summary()
 
     model.summary()
 
@@ -127,7 +133,7 @@ def main():
     model.compile(optimizer=optimizer, loss=loss, metrics=training_metrics)
 
     # While iterating through the data, iterator feeds the model with the batches of data in order to train it
-    for state, actions, reward, next_state, done in iterator.buffered_batch_iter(batch_size=16384, num_batches=5):
+    for state, actions, reward, next_state, done in iterator.buffered_batch_iter(batch_size=16384, num_batches=3):
         obs = state['pov'].squeeze().astype(np.float) / 255.0
         actions = normalize_actions(actions, len(obs))
 
@@ -150,8 +156,8 @@ def main():
     obs = env.reset()
 
     total_reward = 0
-    actions_number = env.action_space.n
-    action_list = np.arange(actions_number)
+    num_actions = env.action_space.n
+    action_list = np.arange(num_actions)
 
     for step in range(18000):
         env.render()
