@@ -12,18 +12,17 @@ from abc import ABC
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
 class ActionShaper(gym.ActionWrapper, ABC):
-    def __init__(self, env, vertical_camera_angle=5, horizontal_camera_angle=15):
+    def __init__(self, env, vertical_camera_angle=7.5, horizontal_camera_angle=20):
         super().__init__(env)
 
         self.vertical_camera_angle = vertical_camera_angle
         self.horizontal_camera_angle = horizontal_camera_angle
         self.dataset_actions = [
             [('attack', 1)],
-            [('forward', 1)],
             [('back', 1)],
             [('left', 1)],
             [('right', 1)],
-            [('jump', 1)],
+            [('forward', 1)],
             [('forward', 1), ('jump', 1), ('sprint', 1)],
             [('forward', 1), ('jump', 1)],
             [('camera', [-self.horizontal_camera_angle, 0])],
@@ -47,7 +46,7 @@ class ActionShaper(gym.ActionWrapper, ABC):
 
 
 # This function gets the dictionary of actions and returns a numpy array of active actions during each step
-def normalize_actions(actions, batch_size, vertical_camera_padding=10, horizontal_camera_padding=5):
+def normalize_actions(actions, batch_size, vertical_camera_padding=7.5, horizontal_camera_padding=5):
     camera_actions = actions["camera"].squeeze()
     attack_actions = actions["attack"].squeeze()
     forward_actions = actions["forward"].squeeze()
@@ -62,33 +61,31 @@ def normalize_actions(actions, batch_size, vertical_camera_padding=10, horizonta
     for i in range(len(camera_actions)):
         # Moving camera has the highest priority
         if camera_actions[i][0] < -horizontal_camera_padding:
-            actions[i] = 8
+            actions[i] = 7
         elif camera_actions[i][0] > horizontal_camera_padding:
-            actions[i] = 9
+            actions[i] = 8
         elif camera_actions[i][1] > vertical_camera_padding:
-            actions[i] = 10
+            actions[i] = 9
         elif camera_actions[i][1] < -vertical_camera_padding:
-            actions[i] = 11
+            actions[i] = 10
 
         # Then moving forward with/without jump
-        elif forward_actions[i] == 1:
-            if jump_actions[i] == 1 and sprint_actions[i] == 1:
-                actions[i] = 6
-            if jump_actions[i] == 1 and sprint_actions[i] == 0:
-                actions[i] = 7
-            else:
-                actions[i] = 1
-
         elif jump_actions[i] == 1:
-            actions[i] = 5
+            if forward_actions[i] == 1 and sprint_actions[i] == 1:
+                actions[i] = 5
+            elif forward_actions[i] == 1 and sprint_actions[i] == 0:
+                actions[i] = 6
+
+        elif forward_actions[i] == 1:
+            actions[i] = 4
 
         # Then other navigation actions
         elif back_actions[i] == 1:
-            actions[i] = 2
+            actions[i] = 1
         elif left_actions[i] == 1:
-            actions[i] = 3
+            actions[i] = 2
         elif right_actions[i] == 1:
-            actions[i] = 4
+            actions[i] = 3
 
         # Attacking has the lowest priority
         elif attack_actions[i] == 1:
@@ -121,21 +118,21 @@ def main():
         # Fourth convolutional layer
         layers.Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same'),
         layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.3),
+        layers.Dropout(0.2),
 
         # After performing the convolutional layers, the input is flattened to a 1D array and passed to the dense layers.
         layers.Flatten(),
         layers.Dense(units=1024, activation='relu'),
-        layers.Dense(units=12, activation='softmax')
+        layers.Dense(units=11, activation='softmax')
     ])
 
     model.summary()
 
     # Model's parameters
     optimizer = optimizers.Adam(learning_rate=1e-3)  # How fast the model learns
-    loss = losses.SparseCategoricalCrossentropy(from_logits=True)  # The loss function
+    loss = losses.SparseCategoricalCrossentropy()  # The loss function
     training_metrics = ['accuracy']  # What metrics to track during training
-    checkpoint_path = "weights/adam-v0/adam-v0.ckpt"  # Path to save the weights of the model
+    checkpoint_path = "weights/adam-v1/adam-v1.ckpt"  # Path to save the weights of the model
     checkpoint_dir = os.path.dirname(checkpoint_path)  # Directory to later load the weights from
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
 
@@ -164,37 +161,33 @@ def main():
     model.load_weights(latest)
 
     # Use the model to fucking predict the actions
-    env = gym.make('MineRLObtainDiamond-v0')
+    env = gym.make('MineRLTreechop-v0')
     env = ActionShaper(env)
 
     obs = env.reset()
 
-    total_reward = 0
+    total_reward, step = 0, 0
     actions_number = env.action_space.n
     action_list = np.arange(actions_number)
+    done = False
 
-    for step in range(6000):
+    while not done:
         env.render()
 
         pov = (obs['pov'].squeeze().astype(np.float) / 255.0).reshape((1, 64, 64, 3))
         action_probabilities = model(pov, training=False)
-
         action = np.random.choice(action_list, p=action_probabilities.numpy()[0])
 
         obs, reward, done, _ = env.step(action)
         total_reward += reward
 
         print("Step: {} – Reward: {}".format(step, total_reward))
-        print("Inventory:", obs['inventory'])
         print("Action:", action)
         print("")
 
-        if obs['inventory']['log'] >= 10:
-            break
+        step += 1
 
     print("Total reward:", total_reward)
-
-    env.reset()
 
 
 if __name__ == '__main__':
