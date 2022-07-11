@@ -12,11 +12,11 @@ from abc import ABC
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
 class ActionShaper(gym.ActionWrapper, ABC):
-    def __init__(self, env, vertical_camera_angle=7.5, horizontal_camera_angle=20):
+    def __init__(self, env, vertical_angle=7.5, horizontal_angle=20):
         super().__init__(env)
 
-        self.vertical_camera_angle = vertical_camera_angle
-        self.horizontal_camera_angle = horizontal_camera_angle
+        self.vertical_angle = vertical_angle
+        self.horizontal_angle = horizontal_angle
         self.dataset_actions = [
             [('attack', 1)],
             [('back', 1)],
@@ -25,10 +25,10 @@ class ActionShaper(gym.ActionWrapper, ABC):
             [('forward', 1)],
             [('forward', 1), ('jump', 1), ('sprint', 1)],
             [('forward', 1), ('jump', 1)],
-            [('camera', [-self.horizontal_camera_angle, 0])],
-            [('camera', [self.horizontal_camera_angle, 0])],
-            [('camera', [0, self.vertical_camera_angle])],
-            [('camera', [0, -self.vertical_camera_angle])],
+            [('camera', [-self.horizontal_angle, 0])],
+            [('camera', [self.horizontal_angle, 0])],
+            [('camera', [0, self.vertical_angle])],
+            [('camera', [0, -self.vertical_angle])],
         ]
 
         self.actions = []
@@ -46,7 +46,7 @@ class ActionShaper(gym.ActionWrapper, ABC):
 
 
 # This function gets the dictionary of actions and returns a numpy array of active actions during each step
-def normalize_actions(actions, batch_size, vertical_camera_padding=7.5, horizontal_camera_padding=5):
+def normalize_actions(actions, batch_size, vertical_padding=7.5, horizontal_padding=5):
     camera_actions = actions["camera"].squeeze()
     attack_actions = actions["attack"].squeeze()
     forward_actions = actions["forward"].squeeze()
@@ -60,35 +60,36 @@ def normalize_actions(actions, batch_size, vertical_camera_padding=7.5, horizont
 
     for i in range(len(camera_actions)):
         # Moving camera has the highest priority
-        if camera_actions[i][0] < -horizontal_camera_padding:
+        if camera_actions[i][0] < -horizontal_padding:
             actions[i] = 7
-        elif camera_actions[i][0] > horizontal_camera_padding:
+        elif camera_actions[i][0] > horizontal_padding:
             actions[i] = 8
-        elif camera_actions[i][1] > vertical_camera_padding:
+        elif camera_actions[i][1] > vertical_padding:
             actions[i] = 9
-        elif camera_actions[i][1] < -vertical_camera_padding:
+        elif camera_actions[i][1] < -vertical_padding:
             actions[i] = 10
 
-        # Then moving forward with/without jump
-        elif jump_actions[i] == 1:
-            if forward_actions[i] == 1 and sprint_actions[i] == 1:
+        # Then jump with/without moving forward
+        elif jump_actions[i] and forward_actions[i]:
+            if sprint_actions[i]:
                 actions[i] = 5
-            elif forward_actions[i] == 1 and sprint_actions[i] == 0:
+            else:
                 actions[i] = 6
 
-        elif forward_actions[i] == 1:
+        # Just move forward if there is no jumping action
+        elif forward_actions[i]:
             actions[i] = 4
 
         # Then other navigation actions
-        elif back_actions[i] == 1:
+        elif back_actions[i]:
             actions[i] = 1
-        elif left_actions[i] == 1:
+        elif left_actions[i]:
             actions[i] = 2
-        elif right_actions[i] == 1:
+        elif right_actions[i]:
             actions[i] = 3
 
         # Attacking has the lowest priority
-        elif attack_actions[i] == 1:
+        elif attack_actions[i]:
             actions[i] = 0
         else:
             # No reasonable mapping (will be ignored after applying a mask)
@@ -112,7 +113,7 @@ def main():
         layers.Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same'),
         layers.MaxPooling2D((2, 2)),
         # Dropout is a regularization technique that randomly drops out units in a neural network. It is used to prevent overfitting.
-        # It disables some units in the network with a rate of p. And thus, it generalizes the output.
+        # It disables some neurons in the network with a rate of p. And thus, it generalizes the output.
         layers.Dropout(0.2),
 
         # Fourth convolutional layer
@@ -161,7 +162,7 @@ def main():
     model.load_weights(latest)
 
     # Use the model to fucking predict the actions
-    env = gym.make('MineRLTreechop-v0')
+    env = gym.make('MineRLObtainDiamond-v0')
     env = ActionShaper(env)
 
     obs = env.reset()
@@ -183,6 +184,7 @@ def main():
 
         print("Step: {} – Reward: {}".format(step, total_reward))
         print("Action:", action)
+        print("Number of logs:", obs['inventory']['log'])
         print("")
 
         step += 1
