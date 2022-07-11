@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 from minerl.data import BufferedBatchIter
+    # kirill pidoras
 from keras import layers, models, optimizers, losses
 
 
