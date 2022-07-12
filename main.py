@@ -179,9 +179,6 @@ def main():
 
         obs, reward, done, _ = reduced_env.step(action)
 
-    print("")
-    print(env.action_space)
-
 
 if __name__ == '__main__':
     main()
