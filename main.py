@@ -34,8 +34,8 @@ class ActionShaper(gym.ActionWrapper, ABC):
         self.actions = []
         for actions in self.dataset_actions:
             act = self.env.action_space.noop()
-            for a, v in actions:
-                act[a] = v
+            for action, value in actions:
+                act[action] = value
 
             self.actions.append(act)
 
@@ -161,33 +161,26 @@ def main():
     model.load_weights(latest)
 
     # Use the model to fucking predict the actions
-    env = gym.make('MineRLTreechop-v0')
-    env = ActionShaper(env)
+    env = gym.make('MineRLObtainDiamond-v0')
+    reduced_env = ActionShaper(env)
 
     obs = env.reset()
 
-    total_reward, step = 0, 0
-    actions_number = env.action_space.n
+    actions_number = reduced_env.action_space.n
     action_list = np.arange(actions_number)
     done = False
 
-    while not done:
-        env.render()
+    while obs['inventory']['log'] <= 10 and not done:
+        reduced_env.render()
 
         pov = (obs['pov'].squeeze().astype(np.float) / 255.0).reshape((1, 64, 64, 3))
         action_probabilities = model(pov, training=False)
         action = np.random.choice(action_list, p=action_probabilities.numpy()[0])
 
-        obs, reward, done, _ = env.step(action)
-        total_reward += reward
+        obs, reward, done, _ = reduced_env.step(action)
 
-        print("Step: {} – Reward: {}".format(step, total_reward))
-        print("Action:", action)
-        print("")
-
-        step += 1
-
-    print("Total reward:", total_reward)
+    print("")
+    print(env.action_space)
 
 
 if __name__ == '__main__':
