@@ -34,8 +34,8 @@ class ActionShaper(gym.ActionWrapper, ABC):
         self.actions = []
         for actions in self.dataset_actions:
             act = self.env.action_space.noop()
-            for a, v in actions:
-                act[a] = v
+            for action, value in actions:
+                act[action] = value
 
             self.actions.append(act)
 
@@ -135,7 +135,7 @@ def main():
     training_metrics = ['accuracy']  # What metrics to track during training
     checkpoint_path = "weights/adam-v1/adam-v1.ckpt"  # Path to save the weights of the model
     checkpoint_dir = os.path.dirname(checkpoint_path)  # Directory to later load the weights from
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
+    # cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
 
     # Load the MineRLTreechop-v0 dataset and create a batch iterator
     # data = minerl.data.make('MineRLTreechop-v0')
