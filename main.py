@@ -12,7 +12,7 @@ from abc import ABC
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
 class ActionShaper(gym.ActionWrapper, ABC):
-    def __init__(self, env, vertical_camera_angle=7.5, horizontal_camera_angle=20):
+    def __init__(self, env, vertical_camera_angle=5, horizontal_camera_angle=7.5):
         super().__init__(env)
 
         self.vertical_camera_angle = vertical_camera_angle
@@ -113,12 +113,12 @@ def main():
         layers.MaxPooling2D((2, 2)),
         # Dropout is a regularization technique that randomly drops out units in a neural network. It is used to prevent overfitting.
         # It disables some units in the network with a rate of p. And thus, it generalizes the output.
-        layers.Dropout(0.2),
+        layers.Dropout(0.175),
 
         # Fourth convolutional layer
         layers.Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same'),
         layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.2),
+        layers.Dropout(0.15),
 
         # After performing the convolutional layers, the input is flattened to a 1D array and passed to the dense layers.
         layers.Flatten(),
@@ -129,10 +129,10 @@ def main():
     model.summary()
 
     # Model's parameters
-    optimizer = optimizers.Adam(learning_rate=1e-3)  # How fast the model learns
+    optimizer = optimizers.Adam(learning_rate=1e-3)  # How fast and how accurate the model is learning
     loss = losses.SparseCategoricalCrossentropy()  # The loss function
     training_metrics = ['accuracy']  # What metrics to track during training
-    checkpoint_path = "weights/adam-v1/adam-v1.ckpt"  # Path to save the weights of the model
+    checkpoint_path = "weights/adam-v2.2/adam-v2.2.ckpt"  # Path to save the weights of the model
     checkpoint_dir = os.path.dirname(checkpoint_path)  # Directory to later load the weights from
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
 
@@ -162,22 +162,36 @@ def main():
 
     # Use the model to fucking predict the actions
     env = gym.make('MineRLObtainDiamond-v0')
-    reduced_env = ActionShaper(env)
+    s_env = gym.wrappers.Monitor(env, './videos', force=True)
+    env.seed(720)
+    env = ActionShaper(env)
 
     obs = env.reset()
 
-    actions_number = reduced_env.action_space.n
+    actions_number = env.action_space.n
     action_list = np.arange(actions_number)
     done = False
 
-    while obs['inventory']['log'] <= 10 and not done:
-        reduced_env.render()
+    while obs['inventory']['log'] < 5 and not done:
+        env.render()
 
-        pov = (obs['pov'].squeeze().astype(np.float) / 255.0).reshape((1, 64, 64, 3))
+        pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
         action_probabilities = model(pov, training=False)
-        action = np.random.choice(action_list, p=action_probabilities.numpy()[0])
 
-        obs, reward, done, _ = reduced_env.step(action)
+        print("")
+        print("Action probabilities:", action_probabilities)
+
+        action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
+
+        obs, reward, done, _ = env.step(action)
+
+    s_obs = s_env.reset()
+    s_env.render()
+
+    s_env.close()
+    env.close()
+
+    print(env.action_space)
 
 
 if __name__ == '__main__':
