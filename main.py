@@ -1,3 +1,4 @@
+import enum
 import os
 import minerl
 import gym
@@ -6,18 +7,19 @@ import tensorflow as tf
 
 from minerl.data import BufferedBatchIter
 from keras import layers, models, optimizers, losses
+from minerl.herobraine.hero.spaces import Enum
 from abc import ABC
 
 
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
-class ActionShaper(gym.ActionWrapper, ABC):
+class OvergroundActionShaper(gym.ActionWrapper, ABC):
     def __init__(self, env, vertical_camera_angle=5, horizontal_camera_angle=7.5):
         super().__init__(env)
 
         self.vertical_camera_angle = vertical_camera_angle
         self.horizontal_camera_angle = horizontal_camera_angle
-        self.dataset_actions = [
+        self.new_actions = [
             [('attack', 1)],
             [('back', 1)],
             [('left', 1)],
@@ -31,18 +33,34 @@ class ActionShaper(gym.ActionWrapper, ABC):
             [('camera', [0, -self.vertical_camera_angle])],
         ]
 
-        self.actions = []
-        for actions in self.dataset_actions:
+        self.new_action_space = []
+        for action_pair in self.new_actions:
             act = self.env.action_space.noop()
-            for action, value in actions:
+            for action, value in action_pair:
                 act[action] = value
 
-            self.actions.append(act)
+            self.new_action_space.append(act)
 
-        self.action_space = gym.spaces.Discrete(len(self.actions))
+        self.action_space = gym.spaces.Discrete(len(self.new_action_space))
 
     def action(self, action):
-        return self.actions[action]
+        return self.new_action_space[action]
+
+
+class CraftingActionShaper(gym.ActionWrapper, ABC):
+    def __init__(self, env):
+        super().__init__(env)
+
+        self.action_space = gym.spaces.Dict({
+            'craft': Enum('crafting_table', 'planks', 'stick', 'torch'),
+            'equip': Enum('air', 'iron_pickaxe', 'stone_pickaxe', 'wooden_pickaxe'),
+            'nearbyCraft': Enum('furnace', 'iron_pickaxe', 'stone_pickaxe', 'wooden_pickaxe'),
+            'nearbySmelt': Enum('coal', 'iron_ingot'),
+            'place': Enum('cobblestone', 'crafting_table', 'dirt', 'furnace', 'torch'),
+        })
+
+    def action(self, action):
+        return self.action_space[action]
 
 
 # This function gets the dictionary of actions and returns a numpy array of active actions during each step
@@ -101,8 +119,10 @@ def main():
     model = models.Sequential([
 
         # First convolutional layer
-        layers.Conv2D(filters=64, kernel_size=(5, 5), activation='relu', input_shape=(64, 64, 3)),  # Performs a 2D convolution over the input.
-        layers.MaxPooling2D((2, 2)),  # Reduces the size of the input by a factor of 2. This is useful for downsampling the image.
+        layers.Conv2D(filters=64, kernel_size=(5, 5), activation='relu', input_shape=(64, 64, 3)),
+        # Performs a 2D convolution over the input.
+        layers.MaxPooling2D((2, 2)),
+        # Reduces the size of the input by a factor of 2. This is useful for downsampling the image.
 
         # Second convolutional layer
         layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'),
@@ -162,10 +182,10 @@ def main():
 
     # Use the model to fucking predict the actions
     env = gym.make('MineRLObtainDiamond-v0')
-    s_env = gym.wrappers.Monitor(env, './videos', force=True)
-    env.seed(720)
-    env = ActionShaper(env)
+    env = gym.wrappers.Monitor(env, './videos', force=True)
+    env = OvergroundActionShaper(env)
 
+    env.seed(720)
     obs = env.reset()
 
     actions_number = env.action_space.n
@@ -178,20 +198,13 @@ def main():
         pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
         action_probabilities = model(pov, training=False)
 
-        print("")
-        print("Action probabilities:", action_probabilities)
-
         action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
 
         obs, reward, done, _ = env.step(action)
 
-    s_obs = s_env.reset()
-    s_env.render()
+    env = CraftingActionShaper(env)
 
-    s_env.close()
     env.close()
-
-    print(env.action_space)
 
 
 if __name__ == '__main__':
