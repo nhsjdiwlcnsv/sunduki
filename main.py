@@ -25,6 +25,7 @@ def main():
     obs = env.reset()
 
     # Get the size of the action space and form a list of action indices
+
     actions_number = env.action_space.n
     action_list = np.arange(actions_number)
 
