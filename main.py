@@ -1,4 +1,3 @@
-import enum
 import os
 import minerl
 import gym
@@ -7,12 +6,14 @@ import tensorflow as tf
 
 from minerl.data import BufferedBatchIter
 from keras import layers, models, optimizers, losses
-from minerl.herobraine.hero.spaces import Enum
-from abc import ABC
 
+from abc import ABC
 
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
+from minerl.herobraine.hero.spaces import Enum
+
+
 class OvergroundActionShaper(gym.ActionWrapper, ABC):
     def __init__(self, env, vertical_camera_angle=5, horizontal_camera_angle=7.5):
         super().__init__(env)
@@ -47,23 +48,7 @@ class OvergroundActionShaper(gym.ActionWrapper, ABC):
         return self.new_action_space[action]
 
 
-class CraftingActionShaper(gym.ActionWrapper, ABC):
-    def __init__(self, env):
-        super().__init__(env)
-
-        self.action_space = gym.spaces.Dict({
-            'craft': Enum('crafting_table', 'planks', 'stick', 'torch'),
-            'equip': Enum('air', 'iron_pickaxe', 'stone_pickaxe', 'wooden_pickaxe'),
-            'nearbyCraft': Enum('furnace', 'iron_pickaxe', 'stone_pickaxe', 'wooden_pickaxe'),
-            'nearbySmelt': Enum('coal', 'iron_ingot'),
-            'place': Enum('cobblestone', 'crafting_table', 'dirt', 'furnace', 'torch'),
-        })
-
-    def action(self, action):
-        return self.action_space[action]
-
-
-# This function gets the dictionary of actions and returns a numpy array of active actions during each step
+# This function gets the Dict of actions and returns a numpy array of active actions during each step
 def normalize_actions(actions, batch_size, vertical_camera_padding=7.5, horizontal_camera_padding=5):
     camera_actions = actions["camera"].squeeze()
     attack_actions = actions["attack"].squeeze()
@@ -111,6 +96,7 @@ def normalize_actions(actions, batch_size, vertical_camera_padding=7.5, horizont
         else:
             # No reasonable mapping (will be ignored after applying a mask)
             actions[i] = -1
+
     return actions
 
 
@@ -182,8 +168,9 @@ def main():
 
     # Use the model to fucking predict the actions
     env = gym.make('MineRLObtainDiamond-v0')
-    env = gym.wrappers.Monitor(env, './videos', force=True)
+
     env = OvergroundActionShaper(env)
+    env = gym.wrappers.Monitor(env, './videos', force=True)
 
     env.seed(720)
     obs = env.reset()
@@ -192,7 +179,7 @@ def main():
     action_list = np.arange(actions_number)
     done = False
 
-    while obs['inventory']['log'] < 5 and not done:
+    while obs['inventory']['log'] < 3 and not done:
         env.render()
 
         pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
@@ -200,11 +187,52 @@ def main():
 
         action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
 
-        obs, reward, done, _ = env.step(action)
+        obs, reward, _, info = env.step(action)
 
-    env = CraftingActionShaper(env)
+    env = env.unwrapped
 
-    env.close()
+    action_sequence = []
+    craft_pickaxe = []
+    craft_pickaxe += ['craft:planks'] * 3
+    craft_pickaxe += ['craft:stick']
+    craft_pickaxe += ['craft:crafting_table'] * 1
+    craft_pickaxe += ['place:crafting_table'] * 2
+    craft_pickaxe += ['nearbyCraft:wooden_pickaxe'] * 2
+    craft_pickaxe += ['equip:wooden_pickaxe'] * 3
+
+    for item in craft_pickaxe:
+        act = item.split(':')[0]
+        obj = item.split(':')[1]
+        action_sample = env.action_space.noop()
+        odd_actions = ['attack', 'camera', 'forward', 'back', 'left', 'right', 'jump', 'sneak', 'sprint']
+
+        for action in action_sample:
+            if action != act and action not in odd_actions:
+                action_sample[action] = 'none'
+            elif action == act:
+                action_sample[action] = obj
+
+        action_sequence.append(action_sample)
+
+    for action in action_sequence:
+        obs, reward, done, info = env.step(action)
+        print("")
+        print("Inventory: {}".format(obs['inventory']))
+        env.render()
+
+    env = OvergroundActionShaper(env)
+
+    for step in range(50):
+        obs, reward, done, info = env.step(8)
+        env.render()
+        obs, reward, done, info = env.step(9)
+        env.render()
+
+    for step in range(500):
+        obs, reward, done, info = env.step(0)
+        env.render()
+
+    print(obs['inventory'])
 
 
 if __name__ == '__main__':
