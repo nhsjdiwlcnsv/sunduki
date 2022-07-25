@@ -11,13 +11,13 @@ from abc import ABC
 
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
-class ActionShaper(gym.ActionWrapper, ABC):
+class OvergroundActionShaper(gym.ActionWrapper, ABC):
     def __init__(self, env, vertical_angle=7.5, horizontal_angle=20):
         super().__init__(env)
 
         self.vertical_angle = vertical_angle
         self.horizontal_angle = horizontal_angle
-        self.dataset_actions = [
+        self.new_actions = [
             [('attack', 1)],
             [('back', 1)],
             [('left', 1)],
@@ -31,18 +31,18 @@ class ActionShaper(gym.ActionWrapper, ABC):
             [('camera', [0, -self.vertical_angle])],
         ]
 
-        self.actions = []
-        for actions in self.dataset_actions:
+        self.new_action_space = []
+        for action_pair in self.new_actions:
             act = self.env.action_space.noop()
-            for action, value in actions:
+            for action, value in action_pair:
                 act[action] = value
 
-            self.actions.append(act)
+            self.new_action_space.append(act)
 
-        self.action_space = gym.spaces.Discrete(len(self.actions))
+        self.action_space = gym.spaces.Discrete(len(self.new_action_space))
 
     def action(self, action):
-        return self.actions[action]
+        return self.new_action_space[action]
 
 
 # This function gets the dictionary of actions and returns a numpy array of active actions during each step
@@ -94,6 +94,7 @@ def normalize_actions(actions, batch_size, vertical_padding=7.5, horizontal_padd
         else:
             # No reasonable mapping (will be ignored after applying a mask)
             actions[i] = -1
+
     return actions
 
 
@@ -113,13 +114,13 @@ def main():
         layers.Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same'),
         layers.MaxPooling2D((2, 2)),
         # Dropout is a regularization technique that randomly drops out units in a neural network. It is used to prevent overfitting.
-        # It disables some neurons in the network with a rate of p. And thus, it generalizes the output.
-        layers.Dropout(0.2),
+        # It disables some units in the network with a rate of p. And thus, it generalizes the output.
+        layers.Dropout(0.175),
 
         # Fourth convolutional layer
         layers.Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same'),
         layers.MaxPooling2D((2, 2)),
-        layers.Dropout(0.2),
+        layers.Dropout(0.15),
 
         # After performing the convolutional layers, the input is flattened to a 1D array and passed to the dense layers.
         layers.Flatten(),
@@ -130,12 +131,12 @@ def main():
     model.summary()
 
     # Model's parameters
-    optimizer = optimizers.Adam(learning_rate=1e-3)  # How fast the model learns
+    optimizer = optimizers.Adam(learning_rate=1e-3)  # How fast and how accurate the model is learning
     loss = losses.SparseCategoricalCrossentropy()  # The loss function
     training_metrics = ['accuracy']  # What metrics to track during training
-    checkpoint_path = "weights/adam-v1/adam-v1.ckpt"  # Path to save the weights of the model
+    checkpoint_path = "weights/adam-v2.2/adam-v2.2.ckpt"  # Path to save the weights of the model
     checkpoint_dir = os.path.dirname(checkpoint_path)  # Directory to later load the weights from
-    # cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
 
     # Load the MineRLTreechop-v0 dataset and create a batch iterator
     # data = minerl.data.make('MineRLTreechop-v0')
@@ -163,33 +164,70 @@ def main():
 
     # Use the model to fucking predict the actions
     env = gym.make('MineRLObtainDiamond-v0')
-    env = ActionShaper(env)
 
+    env = OvergroundActionShaper(env)
+
+    env.seed(720)
     obs = env.reset()
 
-    total_reward, step = 0, 0
     actions_number = env.action_space.n
     action_list = np.arange(actions_number)
     done = False
 
-    while not done:
+    while obs['inventory']['log'] < 3:
         env.render()
 
-        pov = (obs['pov'].squeeze().astype(np.float) / 255.0).reshape((1, 64, 64, 3))
+        pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
         action_probabilities = model(pov, training=False)
-        action = np.random.choice(action_list, p=action_probabilities.numpy()[0])
 
-        obs, reward, done, _ = env.step(action)
-        total_reward += reward
+        action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
 
-        print("Step: {} – Reward: {}".format(step, total_reward))
-        print("Action:", action)
-        print("Number of logs:", obs['inventory']['log'])
-        print("")
+        obs, reward, done, info = env.step(action)
 
-        step += 1
+    env = env.unwrapped
 
-    print("Total reward:", total_reward)
+    action_sequence = []
+    craft_pickaxe = []
+    craft_pickaxe += ['craft:planks'] * 3
+    craft_pickaxe += ['craft:stick']
+    craft_pickaxe += ['craft:crafting_table']
+    craft_pickaxe += ['place:crafting_table'] * 2
+    craft_pickaxe += ['nearbyCraft:wooden_pickaxe']
+    craft_pickaxe += ['equip:wooden_pickaxe']
+
+    for item in craft_pickaxe:
+        act = item.split(':')[0]
+        obj = item.split(':')[1]
+        action_sample = env.action_space.noop()
+        odd_actions = ['attack', 'camera', 'forward', 'back', 'left', 'right', 'jump', 'sneak', 'sprint']
+
+        for action in action_sample:
+            if action != act and action not in odd_actions:
+                action_sample[action] = 'none'
+            elif action == act:
+                action_sample[action] = obj
+
+        action_sequence.append(action_sample)
+
+    for action in action_sequence:
+        obs, reward, done, info = env.step(action)
+        env.render()
+
+    env = OvergroundActionShaper(env)
+
+    for _ in range(100):
+        obs, reward, done, info = env.step(1)
+
+    for _ in range(50):
+        env.step(8)
+        obs, reward, done, info = env.step(9)
+        env.render()
+
+    for _ in range(500):
+        obs, reward, done, info = env.step(0)
+        env.render()
+
+    print(obs['inventory'])
 
 
 if __name__ == '__main__':
