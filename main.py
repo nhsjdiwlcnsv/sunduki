@@ -6,20 +6,17 @@ import tensorflow as tf
 
 from minerl.data import BufferedBatchIter
 from keras import layers, models, optimizers, losses
-
 from abc import ABC
+
 
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
-from minerl.herobraine.hero.spaces import Enum
-
-
 class OvergroundActionShaper(gym.ActionWrapper, ABC):
-    def __init__(self, env, vertical_camera_angle=5, horizontal_camera_angle=7.5):
+    def __init__(self, env, vertical_angle=7.5, horizontal_angle=20):
         super().__init__(env)
 
-        self.vertical_camera_angle = vertical_camera_angle
-        self.horizontal_camera_angle = horizontal_camera_angle
+        self.vertical_angle = vertical_angle
+        self.horizontal_angle = horizontal_angle
         self.new_actions = [
             [('attack', 1)],
             [('back', 1)],
@@ -28,10 +25,10 @@ class OvergroundActionShaper(gym.ActionWrapper, ABC):
             [('forward', 1)],
             [('forward', 1), ('jump', 1), ('sprint', 1)],
             [('forward', 1), ('jump', 1)],
-            [('camera', [-self.horizontal_camera_angle, 0])],
-            [('camera', [self.horizontal_camera_angle, 0])],
-            [('camera', [0, self.vertical_camera_angle])],
-            [('camera', [0, -self.vertical_camera_angle])],
+            [('camera', [-self.horizontal_angle, 0])],
+            [('camera', [self.horizontal_angle, 0])],
+            [('camera', [0, self.vertical_angle])],
+            [('camera', [0, -self.vertical_angle])],
         ]
 
         self.new_action_space = []
@@ -48,8 +45,8 @@ class OvergroundActionShaper(gym.ActionWrapper, ABC):
         return self.new_action_space[action]
 
 
-# This function gets the Dict of actions and returns a numpy array of active actions during each step
-def normalize_actions(actions, batch_size, vertical_camera_padding=7.5, horizontal_camera_padding=5):
+# This function gets the dictionary of actions and returns a numpy array of active actions during each step
+def normalize_actions(actions, batch_size, vertical_padding=7.5, horizontal_padding=5):
     camera_actions = actions["camera"].squeeze()
     attack_actions = actions["attack"].squeeze()
     forward_actions = actions["forward"].squeeze()
@@ -63,35 +60,36 @@ def normalize_actions(actions, batch_size, vertical_camera_padding=7.5, horizont
 
     for i in range(len(camera_actions)):
         # Moving camera has the highest priority
-        if camera_actions[i][0] < -horizontal_camera_padding:
+        if camera_actions[i][0] < -horizontal_padding:
             actions[i] = 7
-        elif camera_actions[i][0] > horizontal_camera_padding:
+        elif camera_actions[i][0] > horizontal_padding:
             actions[i] = 8
-        elif camera_actions[i][1] > vertical_camera_padding:
+        elif camera_actions[i][1] > vertical_padding:
             actions[i] = 9
-        elif camera_actions[i][1] < -vertical_camera_padding:
+        elif camera_actions[i][1] < -vertical_padding:
             actions[i] = 10
 
-        # Then moving forward with/without jump
-        elif jump_actions[i] == 1:
-            if forward_actions[i] == 1 and sprint_actions[i] == 1:
+        # Then jump with/without moving forward
+        elif jump_actions[i] and forward_actions[i]:
+            if sprint_actions[i]:
                 actions[i] = 5
-            elif forward_actions[i] == 1 and sprint_actions[i] == 0:
+            else:
                 actions[i] = 6
 
-        elif forward_actions[i] == 1:
+        # Just move forward if there is no jumping action
+        elif forward_actions[i]:
             actions[i] = 4
 
         # Then other navigation actions
-        elif back_actions[i] == 1:
+        elif back_actions[i]:
             actions[i] = 1
-        elif left_actions[i] == 1:
+        elif left_actions[i]:
             actions[i] = 2
-        elif right_actions[i] == 1:
+        elif right_actions[i]:
             actions[i] = 3
 
         # Attacking has the lowest priority
-        elif attack_actions[i] == 1:
+        elif attack_actions[i]:
             actions[i] = 0
         else:
             # No reasonable mapping (will be ignored after applying a mask)
@@ -170,7 +168,6 @@ def main():
     env = gym.make('MineRLObtainDiamond-v0')
 
     env = OvergroundActionShaper(env)
-    env = gym.wrappers.Monitor(env, './videos', force=True)
 
     env.seed(720)
     obs = env.reset()
@@ -179,7 +176,7 @@ def main():
     action_list = np.arange(actions_number)
     done = False
 
-    while obs['inventory']['log'] < 3 and not done:
+    while obs['inventory']['log'] < 3:
         env.render()
 
         pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
@@ -187,7 +184,7 @@ def main():
 
         action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
 
-        obs, reward, _, info = env.step(action)
+        obs, reward, done, info = env.step(action)
 
     env = env.unwrapped
 
@@ -195,10 +192,10 @@ def main():
     craft_pickaxe = []
     craft_pickaxe += ['craft:planks'] * 3
     craft_pickaxe += ['craft:stick']
-    craft_pickaxe += ['craft:crafting_table'] * 1
+    craft_pickaxe += ['craft:crafting_table']
     craft_pickaxe += ['place:crafting_table'] * 2
-    craft_pickaxe += ['nearbyCraft:wooden_pickaxe'] * 2
-    craft_pickaxe += ['equip:wooden_pickaxe'] * 3
+    craft_pickaxe += ['nearbyCraft:wooden_pickaxe']
+    craft_pickaxe += ['equip:wooden_pickaxe']
 
     for item in craft_pickaxe:
         act = item.split(':')[0]
@@ -216,19 +213,19 @@ def main():
 
     for action in action_sequence:
         obs, reward, done, info = env.step(action)
-        print("")
-        print("Inventory: {}".format(obs['inventory']))
         env.render()
 
     env = OvergroundActionShaper(env)
 
-    for step in range(50):
-        obs, reward, done, info = env.step(8)
-        env.render()
+    for _ in range(100):
+        obs, reward, done, info = env.step(1)
+
+    for _ in range(50):
+        env.step(8)
         obs, reward, done, info = env.step(9)
         env.render()
 
-    for step in range(500):
+    for _ in range(500):
         obs, reward, done, info = env.step(0)
         env.render()
 
