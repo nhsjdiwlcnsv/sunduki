@@ -103,10 +103,8 @@ def main():
     model = models.Sequential([
 
         # First convolutional layer
-        layers.Conv2D(filters=64, kernel_size=(5, 5), activation='relu', input_shape=(64, 64, 3)),
-        # Performs a 2D convolution over the input.
-        layers.MaxPooling2D((2, 2)),
-        # Reduces the size of the input by a factor of 2. This is useful for downsampling the image.
+        layers.Conv2D(filters=64, kernel_size=(5, 5), activation='relu', input_shape=(64, 64, 3)),  # Performs a 2D convolution over the input.
+        layers.MaxPooling2D((2, 2)),  # Reduces the size of the input by a factor of 2. This is useful for downsampling the image.
 
         # Second convolutional layer
         layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'),
