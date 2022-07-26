@@ -1,14 +1,6 @@
 name: Sunduki Flake 8
 
-on: 
-  push:
-    branches:
-      – master
-      – development
-  pull_request:
-    branches:
-      – development
-      – master
+on: [push]
 
 jobs:
   build:
