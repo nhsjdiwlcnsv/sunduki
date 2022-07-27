@@ -22,7 +22,7 @@ jobs:
         sudo apt-get install openjdk-8-jdk
         pip install tensorflow
         pip install numpy
-        pip install --upgrade minerl
+        pip install git+https://github.com/minerllabs/minerl@v1.0.0
         pip install flake8
     - name: Analysing the code with flake8
       run: |
