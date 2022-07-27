@@ -20,9 +20,9 @@ jobs:
         sudo add-apt-repository ppa:openjdk-r/ppa
         sudo apt-get update
         sudo apt-get install openjdk-8-jdk
+        pip3 install --upgrade minerl
         pip install tensorflow
         pip install numpy
-        pip install git+https://github.com/minerllabs/minerl@v1.0.0
         pip install flake8
     - name: Analysing the code with flake8
       run: |
