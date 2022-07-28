@@ -1,22 +1,24 @@
-import minerl
 import gym
 import numpy as np
 
-from model.Adam import Adam
-from wrappers.OvergroundActionShaper import OvergroundActionShaper
-from wrappers.Unwrapped import normalize_actions
+from src.Adam import Adam
+from src.OvergroundActionShaper import OvergroundActionShaper
+from src.normalizers import normalize_actions
+from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN
+from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE
 
 
 def main():
+    # Create and compile the model
     model = Adam((64, 64, 3), 11)
-
     model.summary()
     model.compile()
 
     # Load the model's weights
     model.load_weights("weights/adam-v2.2/adam-v2.2.ckpt")
 
-    # Use the model to chop trees
+    # Create the environment to perform the actions on. Currently, the bot uses MineRLObtainDiamond-v0 env
+    # because it is the closest env to the original conditions of player in Minecraft survival mode
     env = gym.make('MineRLObtainDiamond-v0')
     env = OvergroundActionShaper(env)
     env.seed(720)
@@ -25,11 +27,10 @@ def main():
     obs = env.reset()
 
     # Get the size of the action space and form a list of action indices
-
     actions_number = env.action_space.n
     action_list = np.arange(actions_number)
 
-    while obs['inventory']['log'] < 5:
+    while obs['inventory']['log'] < LOGS_TO_CHOP:
         env.render()
 
         pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
@@ -42,41 +43,22 @@ def main():
 
     # Unwrap the environment and craft a wooden pickaxe
     env = env.unwrapped
+    craft_pickaxe = normalize_actions(CRAFT_WOODEN_PICKAXE, env)
+    look_down = normalize_actions(LOOK_DOWN, env)
 
-    action_sequence = normalize_actions([
-        'craft:planks',
-        'craft:planks',
-        'craft:planks',
-        'craft:planks',
-        'craft:stick',
-        'craft:crafting_table',
-        'craft:crafting_table',
-        'place:crafting_table',
-        'place:crafting_table',
-        'nearbyCraft:wooden_pickaxe',
-        'equip:wooden_pickaxe',
-    ], env)
-
-    for action in action_sequence:
+    # Perform the actions above and acquire a wooden pickaxe
+    # Then once again wrap the environment and prepare for mining. Before that, rotate the camera to look at the ground.
+    for action in craft_pickaxe + look_down:
         env.render()
         obs, reward, done, info = env.step(action)
 
-    # Once again wrap the environment and prepare for mining. Make a few steps back and rotate the camera to look at the ground.
     env = OvergroundActionShaper(env)
 
-    for step in range(1000):
+    print(obs['inventory'])
+
+    while obs['inventory']['cobblestone'] < COBBLESTONE_TO_MINE:
         env.render()
-
-        if step < 50:
-            action = 1
-        elif step < 100:
-            action = 8
-        elif step < 150:
-            action = 9
-        else:
-            action = 0
-
-        obs, reward, done, info = env.step(action)
+        obs, reward, done, info = env.step(0)
 
     print(obs['inventory'])
 

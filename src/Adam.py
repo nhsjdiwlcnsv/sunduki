@@ -1,12 +1,11 @@
 import os
 import minerl
-import gym
 import numpy as np
 import tensorflow as tf
 
 from minerl.data import BufferedBatchIter
-from keras import layers, models, optimizers, losses
-from wrappers.OvergroundActionShaper import normalize_actions
+from keras import layers, optimizers, losses
+from src.normalizers import numerize_actions
 
 
 class Adam:
@@ -67,7 +66,7 @@ class Adam:
         for state, actions, _, _, _ in iterator.buffered_batch_iter(batch_size=batch_size, num_batches=num_batches):
             # Normalize both the observations and the actions
             obs = state['pov'].squeeze().astype(np.float) / 255.0
-            actions = normalize_actions(actions, len(obs))
+            actions = numerize_actions(actions, len(obs))
 
             # Apply the mask to the observations and actions to make sure the model only sees the relevant data
             mask = actions != -1
