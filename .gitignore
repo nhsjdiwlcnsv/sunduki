@@ -1,2 +1,4 @@
 logs/
-videos/
+venv/
+.idea/
+.DS_Store
