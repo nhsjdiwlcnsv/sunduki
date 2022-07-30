@@ -14,7 +14,7 @@ def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_paddi
     right_actions = actions["right"].squeeze()
     jump_actions = actions["jump"].squeeze()
 
-    actions = np.zeros((batch_size,), dtype=np.int4)
+    actions = np.zeros((batch_size,), dtype=np.int64)
 
     for i in range(len(camera_actions)):
         # Moving camera has the highest priority
