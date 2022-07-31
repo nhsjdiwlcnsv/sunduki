@@ -4,7 +4,7 @@ import numpy as np
 from src.Adam import Adam
 from src.OvergroundActionShaper import OvergroundActionShaper
 from src.normalizers import normalize_actions
-from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN
+from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN, CRAFT_STONE_PICKAXE, CRAFT_FURNACE
 from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE
 
 
@@ -43,22 +43,29 @@ def main():
 
     # Unwrap the environment and craft a wooden pickaxe
     env = env.unwrapped
-    craft_pickaxe = normalize_actions(CRAFT_WOODEN_PICKAXE, env)
+    craft_wooden_pickaxe = normalize_actions(CRAFT_WOODEN_PICKAXE, env)
     look_down = normalize_actions(LOOK_DOWN, env)
 
     # Perform the actions above and acquire a wooden pickaxe
     # Then once again wrap the environment and prepare for mining. Before that, rotate the camera to look at the ground.
-    for action in craft_pickaxe + look_down:
+    for action in craft_wooden_pickaxe + look_down:
         env.render()
         obs, reward, done, info = env.step(action)
 
     env = OvergroundActionShaper(env)
 
-    print(obs['inventory'])
-
     while obs['inventory']['cobblestone'] < COBBLESTONE_TO_MINE:
         env.render()
         obs, reward, done, info = env.step(0)
+
+    # Unwrap the environment and craft a stone pickaxe
+    env = env.unwrapped
+    craft_stone_pickaxe = normalize_actions(CRAFT_STONE_PICKAXE, env)
+    craft_furnace = normalize_actions(CRAFT_FURNACE, env)
+
+    for action in craft_stone_pickaxe + craft_furnace:
+        env.render()
+        obs, reward, done, info = env.step(action)
 
     print(obs['inventory'])
 
