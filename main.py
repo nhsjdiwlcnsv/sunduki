@@ -4,7 +4,7 @@ import numpy as np
 from src.Adam import Adam
 from src.OvergroundActionShaper import OvergroundActionShaper
 from src.normalizers import normalize_actions
-from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN, CRAFT_STONE_PICKAXE, CRAFT_FURNACE
+from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN, CRAFT_STONE_PICKAXE, CRAFT_FURNACE, CRAFT_TORCH
 from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE
 
 
@@ -21,7 +21,7 @@ def main():
     # because it is the closest env to the original conditions of player in Minecraft survival mode
     env = gym.make('MineRLObtainDiamond-v0')
     env = OvergroundActionShaper(env)
-    env.seed(720)
+    env.seed(203)
 
     # Start Minecraft by resetting the environment
     obs = env.reset()
@@ -62,10 +62,14 @@ def main():
     env = env.unwrapped
     craft_stone_pickaxe = normalize_actions(CRAFT_STONE_PICKAXE, env)
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
+    craft_torch = normalize_actions(CRAFT_TORCH, env)
 
-    for action in craft_stone_pickaxe + craft_furnace:
+    print(obs['inventory'])
+
+    for action in craft_stone_pickaxe + craft_furnace + craft_torch:
         env.render()
         obs, reward, done, info = env.step(action)
+        print(f'action: {action}')
 
     print(obs['inventory'])
 
