@@ -19,13 +19,13 @@ CRAFT_STONE_PICKAXE += ['nearbyCraft:stone_pickaxe'] * 2
 CRAFT_STONE_PICKAXE += ['equip:stone_pickaxe']
 
 CRAFT_FURNACE = []
-CRAFT_FURNACE += ['nearbyCraft:furnace']
+CRAFT_FURNACE += ['nearbyCraft:furnace'] * 2
 CRAFT_FURNACE += ['camera:[1,0]']
 CRAFT_FURNACE += ['attack:1'] * 20
 
 CRAFT_TORCH = []
 CRAFT_TORCH += ['jump:1'] * 20
 CRAFT_TORCH += ['place:furnace'] * 2
-CRAFT_TORCH += ['camera:[72,91]']
-CRAFT_TORCH += ['nearbySmelt:coal']
-CRAFT_TORCH += ['craft:torch']
+CRAFT_TORCH += ['camera:[-1,0]']
+CRAFT_TORCH += ['nearbySmelt:coal'] * 3
+CRAFT_TORCH += ['craft:torch'] * 2
