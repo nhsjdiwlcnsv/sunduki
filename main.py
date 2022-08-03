@@ -1,5 +1,6 @@
 import gym
 import numpy as np
+import minerl
 
 from src.Adam import Adam
 from src.OvergroundActionShaper import OvergroundActionShaper
@@ -69,20 +70,19 @@ def main():
 
     # Wrap the environment, load new weights and find some iron ore.
     env = OvergroundActionShaper(env)
+    env = gym.wrappers.Monitor(env, './videos/', force=True)
     model.load_weights("weights/adam-v2.2.0/adam-v2.2.0.ckpt")
 
-    print("")
-    print("Mining iron ore...")
-    while obs['inventory']['log'] < IRON_TO_MINE:
+    while obs['inventory']['iron_ore'] < IRON_TO_MINE:
         env.render()
 
         pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
-        # Call the model to predict the actions given the point of view
         action_probabilities = model(pov)
-        # Apply the probabilities to the action list and sample an action
-        action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
+        action = np.argmax(action_probabilities.numpy().squeeze())
 
         obs, reward, done, info = env.step(action)
+
+    print(obs['inventory'])
 
 
 if __name__ == '__main__':

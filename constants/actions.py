@@ -9,7 +9,7 @@ CRAFT_WOODEN_PICKAXE += ['nearbyCraft:wooden_pickaxe']
 CRAFT_WOODEN_PICKAXE += ['equip:wooden_pickaxe']
 
 LOOK_DOWN = []
-LOOK_DOWN += ['camera:[15,0]'] * 20
+LOOK_DOWN += ['camera:[15,1]'] * 20
 LOOK_DOWN += ['back:1'] * 100
 
 CRAFT_STONE_PICKAXE = []
