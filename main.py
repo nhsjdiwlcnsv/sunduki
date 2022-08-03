@@ -4,8 +4,8 @@ import numpy as np
 from src.Adam import Adam
 from src.OvergroundActionShaper import OvergroundActionShaper
 from src.normalizers import normalize_actions
-from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN, CRAFT_STONE_PICKAXE, CRAFT_FURNACE
-from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE, IRON_TO_MINE
+from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN, CRAFT_STONE_PICKAXE, CRAFT_FURNACE, CRAFT_TORCH
+from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE
 
 
 def main():
@@ -62,27 +62,27 @@ def main():
     env = env.unwrapped
     craft_stone_pickaxe = normalize_actions(CRAFT_STONE_PICKAXE, env)
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
+    craft_torch = normalize_actions(CRAFT_TORCH, env)
+
+    print("")
+    print(obs['inventory'])
 
     for action in craft_stone_pickaxe + craft_furnace:
         env.render()
         obs, reward, done, info = env.step(action)
 
-    # Wrap the environment, load new weights and find some iron ore.
-    env = OvergroundActionShaper(env)
-    model.load_weights("weights/adam-v2.2.0/adam-v2.2.0.ckpt")
+    print("")
+    print(obs['inventory'])
+
+    for action in craft_torch:
+        if obs['inventory']['crafting_table']:
+            print("")
+            print(obs['inventory'])
+        env.render()
+        obs, reward, done, info = env.step(action)
 
     print("")
-    print("Mining iron ore...")
-    while obs['inventory']['log'] < IRON_TO_MINE:
-        env.render()
-
-        pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
-        # Call the model to predict the actions given the point of view
-        action_probabilities = model(pov)
-        # Apply the probabilities to the action list and sample an action
-        action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
-
-        obs, reward, done, info = env.step(action)
+    print(obs['inventory'])
 
 
 if __name__ == '__main__':
