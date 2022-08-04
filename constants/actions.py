@@ -9,8 +9,7 @@ CRAFT_WOODEN_PICKAXE += ['nearbyCraft:wooden_pickaxe']
 CRAFT_WOODEN_PICKAXE += ['equip:wooden_pickaxe']
 
 LOOK_DOWN = []
-LOOK_DOWN += ['camera:[15,1]'] * 20
-LOOK_DOWN += ['back:1'] * 100
+LOOK_DOWN += ['camera:[15,0]'] * 30
 
 CRAFT_STONE_PICKAXE = []
 CRAFT_STONE_PICKAXE += ['jump:1'] * 20
@@ -22,4 +21,4 @@ CRAFT_STONE_PICKAXE += ['equip:stone_pickaxe']
 CRAFT_FURNACE = []
 CRAFT_FURNACE += ['nearbyCraft:furnace']
 CRAFT_FURNACE += ['camera:[1,0]']
-CRAFT_FURNACE += ['attack:1'] * 50
+CRAFT_FURNACE += ['attack:1'] * 20

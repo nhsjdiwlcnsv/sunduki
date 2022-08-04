@@ -22,8 +22,8 @@ def main():
     # Create the environment to perform the actions on. Currently, the bot uses MineRLObtainDiamond-v0 env
     # because it is the closest env to the original conditions of player in Minecraft survival mode
     env = gym.make('MineRLObtainDiamond-v0')
-    env = ActionShaper(env, OVERGROUND_MODE)
-    env.seed(203)
+    env = OvergroundActionShaper(env)
+    env.seed(720)
 
     # Start Minecraft by resetting the environment
     obs = env.reset()
@@ -75,6 +75,7 @@ def main():
 
     while obs['inventory']['iron_ore'] < IRON_TO_MINE:
         env.render()
+        obs, reward, done, info = env.step(action)
 
         pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
         action_probabilities = model(pov)
