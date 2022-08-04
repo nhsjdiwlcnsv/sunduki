@@ -1,13 +1,12 @@
-import gym
-import numpy as np
-
 from abc import ABC
+
+import gym
 
 
 # This class is inherited from the abstract class gym.ActionWrapper that is used to filter out the actions that are not relevant
 # for the current environment.
-class OvergroundActionShaper(gym.ActionWrapper, ABC):
-    def __init__(self, env, vertical_angle=7.5, horizontal_angle=20):
+class ActionShaper(gym.ActionWrapper, ABC):
+    def __init__(self, env, new_actions, vertical_angle=7.5, horizontal_angle=20):
         super().__init__(env)
 
         # These two lines define the angle of the camera rotation
@@ -15,14 +14,8 @@ class OvergroundActionShaper(gym.ActionWrapper, ABC):
         self.horizontal_angle = horizontal_angle
 
         # The list of all possible actions the bot can take while being over ground
-        self.new_actions = [
-            [('attack', 1)],
-            [('back', 1)],
-            [('left', 1)],
-            [('right', 1)],
-            [('forward', 1)],
-            [('forward', 1), ('jump', 1), ('sprint', 1)],
-            [('forward', 1), ('jump', 1)],
+        self.new_actions = new_actions
+        self.new_actions += [
             [('camera', [-self.horizontal_angle, 0])],
             [('camera', [self.horizontal_angle, 0])],
             [('camera', [0, self.vertical_angle])],

@@ -3,10 +3,11 @@ import numpy as np
 import minerl
 
 from src.Adam import Adam
-from src.OvergroundActionShaper import OvergroundActionShaper
+from src.ActionShaper import ActionShaper
 from src.normalizers import normalize_actions
 from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN, CRAFT_STONE_PICKAXE, CRAFT_FURNACE
 from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE, IRON_TO_MINE
+from constants.modes import OVERGROUND_MODE, UNDERGROUND_MODE
 
 
 def main():
@@ -21,7 +22,7 @@ def main():
     # Create the environment to perform the actions on. Currently, the bot uses MineRLObtainDiamond-v0 env
     # because it is the closest env to the original conditions of player in Minecraft survival mode
     env = gym.make('MineRLObtainDiamond-v0')
-    env = OvergroundActionShaper(env)
+    env = ActionShaper(env, OVERGROUND_MODE)
     env.seed(203)
 
     # Start Minecraft by resetting the environment
@@ -53,7 +54,7 @@ def main():
         env.render()
         obs, reward, done, info = env.step(action)
 
-    env = OvergroundActionShaper(env)
+    env = ActionShaper(env, OVERGROUND_MODE)
 
     while obs['inventory']['cobblestone'] < COBBLESTONE_TO_MINE:
         env.render()
@@ -69,8 +70,7 @@ def main():
         obs, reward, done, info = env.step(action)
 
     # Wrap the environment, load new weights and find some iron ore.
-    env = OvergroundActionShaper(env)
-    env = gym.wrappers.Monitor(env, './videos/', force=True)
+    env = ActionShaper(env, UNDERGROUND_MODE)
     model.load_weights("weights/adam-v2.2.0/adam-v2.2.0.ckpt")
 
     while obs['inventory']['iron_ore'] < IRON_TO_MINE:
