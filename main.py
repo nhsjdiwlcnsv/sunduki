@@ -1,11 +1,13 @@
 import gym
 import numpy as np
+import minerl
 
 from src.Adam import Adam
-from src.OvergroundActionShaper import OvergroundActionShaper
+from src.ActionShaper import ActionShaper
 from src.normalizers import normalize_actions
 from constants.actions import CRAFT_WOODEN_PICKAXE, LOOK_DOWN, CRAFT_STONE_PICKAXE, CRAFT_FURNACE
-from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE
+from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE, IRON_TO_MINE
+from constants.modes import OVERGROUND_MODE, UNDERGROUND_MODE
 
 
 def main():
@@ -52,7 +54,7 @@ def main():
         env.render()
         obs, reward, done, info = env.step(action)
 
-    env = OvergroundActionShaper(env)
+    env = ActionShaper(env, OVERGROUND_MODE)
 
     while obs['inventory']['cobblestone'] < COBBLESTONE_TO_MINE:
         env.render()
@@ -65,6 +67,20 @@ def main():
 
     for action in craft_stone_pickaxe + craft_furnace:
         env.render()
+        obs, reward, done, info = env.step(action)
+
+    # Wrap the environment, load new weights and find some iron ore.
+    env = ActionShaper(env, UNDERGROUND_MODE)
+    model.load_weights("weights/adam-v2.2.0/adam-v2.2.0.ckpt")
+
+    while obs['inventory']['iron_ore'] < IRON_TO_MINE:
+        env.render()
+        obs, reward, done, info = env.step(action)
+
+        pov = (obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
+        action_probabilities = model(pov)
+        action = np.argmax(action_probabilities.numpy().squeeze())
+
         obs, reward, done, info = env.step(action)
 
     print(obs['inventory'])
