@@ -64,13 +64,11 @@ def main():
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
     craft_torch = normalize_actions(CRAFT_TORCH, env)
 
-    print(obs['inventory'])
-
     for action in craft_stone_pickaxe + craft_furnace + craft_torch:
         env.render()
         obs, reward, done, info = env.step(action)
-        print(f'action: {action}')
 
+    print("")
     print(obs['inventory'])
 
 
