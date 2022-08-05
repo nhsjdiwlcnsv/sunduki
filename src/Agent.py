@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.OvergroundActionShaper import OvergroundActionShaper
+from src.ActionShaper import ActionShaper
 
 
 class Agent:
@@ -14,16 +14,17 @@ class Agent:
     def load_brain(self, path):
         self.brain.load_weights(path)
 
-    def craft_item(self, actions, env):
+    def carry_out(self, actions, env):
         # Unwrap the environment, so it could support the actions that are not available in the shaped environment
         env = env.unwrapped
         # Perform given actions and acquire the item
         for action in actions:
+            env.render()
             self.obs, reward, done, info = env.step(action)
 
-    def gather_items(self, item, item_number, env):
+    def gather_items(self, item, item_number, env, mode):
         # Wrap the env so the bot could use only relevant actions
-        env = OvergroundActionShaper(env)
+        env = ActionShaper(env, mode)
 
         # Get the number of possible actions and form a list of action indices
         actions_number = env.action_space.n
@@ -35,8 +36,8 @@ class Agent:
             # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
             # Call the model to predict the actions given the point of view
-            action_probabilities = self.brain(pov)
+            action_probabilities = np.array(self.brain(pov))
             # Apply the probabilities to the action list and choose an action
-            action = np.random.choice(action_list, p=action_probabilities.numpy().squeeze())
-            self.obs, reward, done, info = env.step(action)
+            action = np.random.choice(a=action_list, p=action_probabilities.squeeze())
 
+            self.obs, reward, done, info = env.step(action)
