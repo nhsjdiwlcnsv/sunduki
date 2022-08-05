@@ -5,49 +5,49 @@ import re
 # This function gets the gym.spaces.Dict of actions and returns a numpy array of active actions during each step
 # Each element of the array is a number that corresponds to the index of the action in the action space
 def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_padding=5):
-    camera_actions = actions["camera"].squeeze()
-    attack_actions = actions["attack"].squeeze()
-    forward_actions = actions["forward"].squeeze()
-    sprint_actions = actions["sprint"].squeeze()
-    back_actions = actions["back"].squeeze()
-    left_actions = actions["left"].squeeze()
-    right_actions = actions["right"].squeeze()
-    jump_actions = actions["jump"].squeeze()
+    camera = actions["camera"].squeeze()
+    attack = actions["attack"].squeeze()
+    forward = actions["forward"].squeeze()
+    back = actions["sneak"].squeeze()
+    sprint = actions["sprint"].squeeze()
+    sneak = actions["sneak"].squeeze()
+    left = actions["left"].squeeze()
+    right = actions["right"].squeeze()
+    jump = actions["jump"].squeeze()
 
-    actions = np.zeros((batch_size,), dtype=np.int4)
+    actions = np.zeros((batch_size,), dtype=np.int64)
 
-    for i in range(len(camera_actions)):
-        # Moving camera has the highest priority
-        if camera_actions[i][0] < -horizontal_padding:
+    for i in range(len(camera)):
+        if camera[i][0] < -horizontal_padding:
             actions[i] = 7
-        elif camera_actions[i][0] > horizontal_padding:
+        elif camera[i][0] > horizontal_padding:
             actions[i] = 8
-        elif camera_actions[i][1] > vertical_padding:
+        elif camera[i][1] > vertical_padding:
             actions[i] = 9
-        elif camera_actions[i][1] < -vertical_padding:
+        elif camera[i][1] < -vertical_padding:
             actions[i] = 10
 
-        # Then jump with/without moving forward
-        elif jump_actions[i] and forward_actions[i]:
-            if sprint_actions[i]:
+        elif sneak[i] and forward[i]:
+            actions[i] = 5
+
+        elif jump[i] and forward[i]:
+            if sprint[i]:
                 actions[i] = 5
             else:
                 actions[i] = 6
 
-        # Just move forward if there is no jumping action
-        elif forward_actions[i]:
+        elif forward[i]:
             actions[i] = 4
 
-        # Then other navigation actions
-        elif back_actions[i]:
+        elif back[i] or sneak[i]:
             actions[i] = 1
-        elif left_actions[i]:
+        elif left[i]:
             actions[i] = 2
-        elif right_actions[i]:
+        elif right[i]:
             actions[i] = 3
 
         # Attacking has the lowest priority
-        elif attack_actions[i]:
+        elif attack[i]:
             actions[i] = 0
         else:
             # No reasonable mapping (will be ignored after applying a mask)
@@ -57,6 +57,7 @@ def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_paddi
 
 
 # This function gets an array of actions and returns a normalized (for the unwrapped env) sequence of action samples
+# where each action sample is a dictionary of actions with only one active action
 def normalize_actions(action_array, env):
     action_sequence = []
 
