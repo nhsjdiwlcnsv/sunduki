@@ -21,7 +21,7 @@ CRAFT_STONE_PICKAXE += ['camera:[15,0]'] * 30
 CRAFT_STONE_PICKAXE += ['jump:1'] * 20
 CRAFT_STONE_PICKAXE += ['place:crafting_table']
 CRAFT_STONE_PICKAXE += ['camera:[-1,0]']
-CRAFT_STONE_PICKAXE += ['craft:stone_pickaxe']
+CRAFT_STONE_PICKAXE += ['craft:stone_pickaxe'] * round((COBBLESTONE_TO_MINE - 8) / 3)
 CRAFT_STONE_PICKAXE += ['equip:stone_pickaxe']
 
 CRAFT_FURNACE = []
