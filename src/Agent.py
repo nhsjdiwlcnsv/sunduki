@@ -29,8 +29,9 @@ class Agent:
         # Get the number of possible actions and form a list of action indices
         actions_number = env.action_space.n
         action_list = np.arange(actions_number)
+        done = False
 
-        while self.obs['inventory'][item] < item_number:
+        while self.obs['inventory'][item] < item_number and not done:
             env.render()
 
             # Normalize agent's POV, so it could be fed to the model
