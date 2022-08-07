@@ -39,8 +39,6 @@ def main():
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
     agent.carry_out(craft_stone_pickaxe + craft_furnace, env)
 
-    print(agent.obs['inventory'])
-
     # Wrap the environment, load the weights for underground actions and find some iron ore.
     agent.gather_items('iron_ore', IRON_TO_MINE, env, UNDERGROUND_MODE)
 
