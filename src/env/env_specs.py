@@ -1,8 +1,7 @@
-from abc import ABC
-
 from minerl.herobraine.env_specs.simple_embodiment import SimpleEmbodimentEnvSpec
 from minerl.herobraine.hero.handler import Handler
 from typing import List
+from abc import ABC
 
 import minerl.herobraine.hero.handlers as handlers
 
@@ -12,6 +11,9 @@ ENV_DOC = """
     """
 
 ENV_LENGTH = 15000
+
+none = 'none'
+other = 'other'
 
 
 class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
@@ -52,11 +54,11 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
 
     def create_actionables(self) -> List[Handler]:
         return super().create_actionables() + [
-            handlers.KeybasedCommandAction('craft'),
-            handlers.CraftAction(['planks', 'stick', 'crafting_table', 'torch']),
-            handlers.CraftNearbyAction(['furnace', 'iron_pickaxe', 'stone_pickaxe', 'wooden_pickaxe']),
-            handlers.SmeltItemNearby(['coal', 'charcoal', 'iron_ingot']),
-            handlers.PlaceBlock(['cobblestone', 'crafting_table', 'dirt', 'furnace', 'stone', 'torch']),
+            handlers.PlaceBlock([none, 'dirt', 'stone', 'cobblestone', 'crafting_table', 'furnace', 'torch'], _other=none, _default=none),
+            handlers.EquipAction([none, 'air', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe'], _other=none, _default=none),
+            handlers.CraftAction([none, 'torch', 'stick', 'planks', 'crafting_table'], _other=none, _default=none),
+            handlers.CraftNearbyAction([none, 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', 'furnace'], _other=none, _default=none),
+            handlers.SmeltItemNearby([none, 'iron_ingot', 'coal'], _other=none, _default=none),
         ]
 
     def create_observables(self) -> List[Handler]:
@@ -79,12 +81,16 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
                 'stone_pickaxe',
                 'torch',
                 'wooden_axe',
-                'wooden_pickaxe',
             ]),
+            handlers.EquippedItemObservation(
+                ['air', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', none, other],
+                _default='air',
+                _other=other
+            ),
         ]
 
     def create_server_initial_conditions(self) -> List[Handler]:
-        return [handlers.TimeInitialCondition(True, 25000)]
+        return [handlers.TimeInitialCondition(True, 23000)]
 
     def create_server_quit_producers(self):
         return []

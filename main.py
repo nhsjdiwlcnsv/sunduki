@@ -15,10 +15,12 @@ def main():
     abs_env = CustomMineRLEnv()
     abs_env.register()
     env = gym.make('CustomMineRLEnv-v0')
+    print("")
     print(env.action_space)
-    # env.seed(203)
+    env.seed(203)
     # Start Minecraft by resetting the environment
     obs = env.reset()
+    print("")
     print(obs)
 
     # Create the model and pass it to MineRL agent
