@@ -11,6 +11,7 @@ def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_paddi
     back = actions["sneak"].squeeze()
     sprint = actions["sprint"].squeeze()
     sneak = actions["sneak"].squeeze()
+    place = actions["place"].squeeze()
     left = actions["left"].squeeze()
     right = actions["right"].squeeze()
     jump = actions["jump"].squeeze()
@@ -27,7 +28,7 @@ def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_paddi
         elif camera[i][1] < -vertical_padding:
             actions[i] = 10
 
-        elif sneak[i] and forward[i]:
+        elif place[i] == "torch":
             actions[i] = 5
 
         elif jump[i] and forward[i]:

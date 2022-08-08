@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from minerl.data import BufferedBatchIter
 from keras import layers, optimizers, losses
-from src.normalizers import numerize_actions
+from src.env.normalizers import numerize_actions
 
 
 class Adam:
