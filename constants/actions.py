@@ -1,10 +1,10 @@
-from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE, COAL_TO_MINE
+from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE
 
 CRAFT_WOODEN_PICKAXE = []
 CRAFT_WOODEN_PICKAXE += ['craft:planks'] * LOGS_TO_CHOP
 CRAFT_WOODEN_PICKAXE += ['craft:stick'] * round(((LOGS_TO_CHOP * 4) - 7) / 4)
 CRAFT_WOODEN_PICKAXE += ['craft:crafting_table']
-CRAFT_WOODEN_PICKAXE += ['camera:[90,0]']
+CRAFT_WOODEN_PICKAXE += ['camera:[180,0]']
 CRAFT_WOODEN_PICKAXE += ['attack:1'] * 80
 CRAFT_WOODEN_PICKAXE += ['jump:1'] * 20
 CRAFT_WOODEN_PICKAXE += ['place:crafting_table']
@@ -29,5 +29,3 @@ CRAFT_FURNACE = []
 CRAFT_FURNACE += ['nearbyCraft:furnace']
 CRAFT_FURNACE += ['camera:[1,0]']
 CRAFT_FURNACE += ['attack:1'] * 80
-
-CRAFT_TORCHES = ['craft:torch'] * COAL_TO_MINE

@@ -17,7 +17,7 @@ def main():
     env = gym.make('CustomMineRLEnv-v0')
     print("")
     print(env.action_space)
-    env.seed(203)
+    env.seed(720)
     # Start Minecraft by resetting the environment
     obs = env.reset()
     print("")
@@ -44,13 +44,6 @@ def main():
     craft_stone_pickaxe = normalize_actions(CRAFT_STONE_PICKAXE, env)
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
     agent.carry_out(craft_stone_pickaxe + craft_furnace, env)
-
-    agent.gather_items('coal', COAL_TO_MINE, env, UNDERGROUND_MODE)
-
-    craft_torches = normalize_actions(CRAFT_TORCHES, env)
-    agent.carry_out(craft_torches, env)
-
-    print(agent.obs['inventory'])
 
     # After the bot acquired some torches to light up the territory it is time to find some iron ore.
     agent.gather_items('iron_ore', IRON_TO_MINE, env, UNDERGROUND_MODE)

@@ -27,9 +27,7 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
         return [handlers.DefaultWorldGenerator()]
 
     def create_agent_start(self) -> List[Handler]:
-        return [
-            handlers.SimpleInventoryAgentStart([dict(type="coal", quantity=3)]),
-        ]
+        return [handlers.SimpleInventoryAgentStart([dict(type="coal", quantity=3)])]
 
     def create_rewardables(self) -> List[Handler]:
         return [
