@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.ActionShaper import ActionShaper
+from src.env.ActionShaper import ActionShaper
 
 
 class Agent:
