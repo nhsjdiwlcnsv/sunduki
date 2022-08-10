@@ -7,7 +7,7 @@ OVERGROUND_MODE = [
         [('forward', 1), ('jump', 1), ('sprint', 1)],
         [('forward', 1), ('jump', 1)],
         [('camera', [-5, 0])],
-        [('camera', [7.5, 0])],
+        [('camera', [5, 0])],
         [('camera', [0, 5])],
         [('camera', [0, -5])],
 ]

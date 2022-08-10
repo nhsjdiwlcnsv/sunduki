@@ -1,6 +1,8 @@
 import numpy as np
 
+from constants.modes import UNDERGROUND_MODE
 from src.env.ActionShaper import ActionShaper
+from src.env.normalizers import normalize_actions
 
 
 class Agent:
@@ -37,8 +39,11 @@ class Agent:
             # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
             # Call the model to predict the actions given the point of view
-            action_probabilities = np.array(self.brain(pov))
+            action_probabilities = np.array(self.brain(pov)).squeeze()
             # Apply the probabilities to the action list and choose an action
-            action = np.random.choice(a=action_list, p=action_probabilities.squeeze())
+            action = np.random.choice(a=action_list, p=action_probabilities)
+
+            if mode == UNDERGROUND_MODE and 'mainhand' in self.obs['equipped_items']:
+                action = normalize_actions(['equip:stone_pickaxe'], env)
 
             self.obs, reward, done, info = env.step(action)

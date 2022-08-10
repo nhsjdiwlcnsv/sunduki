@@ -14,14 +14,11 @@ def main():
     # because it is the closest env to the original conditions of player in Minecraft survival mode
     abs_env = CustomMineRLEnv()
     abs_env.register()
+
     env = gym.make('CustomMineRLEnv-v0')
-    print("")
-    print(env.action_space)
-    env.seed(203)
+    env.seed(720)
     # Start Minecraft by resetting the environment
     obs = env.reset()
-    print("")
-    print(obs)
 
     # Create the model and pass it to MineRL agent
     model = Adam((64, 64, 3), 11)
@@ -34,8 +31,9 @@ def main():
     # Perform the actions below and acquire a wooden pickaxe
     # Then rotate the camera to look at the ground and prepare the area for mining
     craft_wooden_pickaxe = normalize_actions(CRAFT_WOODEN_PICKAXE, env)
+    craft_torch = normalize_actions(CRAFT_TORCH, env)
     mine_down = normalize_actions(MINE_DOWN, env)
-    agent.carry_out(craft_wooden_pickaxe + mine_down, env)
+    agent.carry_out(craft_wooden_pickaxe + craft_torch + mine_down, env)
 
     agent.load_brain("weights/adam-v2.2.0/adam-v2.2.0.ckpt")
     agent.gather_items('cobblestone', COBBLESTONE_TO_MINE, env, UNDERGROUND_MODE)
@@ -44,13 +42,6 @@ def main():
     craft_stone_pickaxe = normalize_actions(CRAFT_STONE_PICKAXE, env)
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
     agent.carry_out(craft_stone_pickaxe + craft_furnace, env)
-
-    agent.gather_items('coal', COAL_TO_MINE, env, UNDERGROUND_MODE)
-
-    craft_torches = normalize_actions(CRAFT_TORCHES, env)
-    agent.carry_out(craft_torches, env)
-
-    print(agent.obs['inventory'])
 
     # After the bot acquired some torches to light up the territory it is time to find some iron ore.
     agent.gather_items('iron_ore', IRON_TO_MINE, env, UNDERGROUND_MODE)

@@ -4,14 +4,14 @@ import re
 
 # This function gets the gym.spaces.Dict of actions and returns a numpy array of active actions during each step
 # Each element of the array is a number that corresponds to the index of the action in the action space
-def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_padding=5):
+def numerize_actions(actions, batch_size, vertical_padding=5, horizontal_padding=5):
     camera = actions["camera"].squeeze()
     attack = actions["attack"].squeeze()
     forward = actions["forward"].squeeze()
     back = actions["sneak"].squeeze()
-    sprint = actions["sprint"].squeeze()
-    sneak = actions["sneak"].squeeze()
-    place = actions["place"].squeeze()
+    sprint = actions["sprint"].squeeze() if "sprint" in actions else np.zeros(batch_size)
+    sneak = actions["sneak"].squeeze() if "sneak" in actions else np.zeros(batch_size)
+    place = actions["place"].squeeze() if "place" in actions else np.zeros(batch_size)
     left = actions["left"].squeeze()
     right = actions["right"].squeeze()
     jump = actions["jump"].squeeze()
@@ -19,14 +19,14 @@ def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_paddi
     actions = np.zeros((batch_size,), dtype=np.int64)
 
     for i in range(len(camera)):
-        if camera[i][0] < -horizontal_padding:
-            actions[i] = 7
-        elif camera[i][0] > horizontal_padding:
-            actions[i] = 8
+        if camera[i][1] < -vertical_padding:
+            actions[i] = 0
         elif camera[i][1] > vertical_padding:
-            actions[i] = 9
-        elif camera[i][1] < -vertical_padding:
-            actions[i] = 10
+            actions[i] = 1
+        elif camera[i][0] < -horizontal_padding:
+            actions[i] = 2
+        elif camera[i][0] > horizontal_padding:
+            actions[i] = 3
 
         elif place[i] == "torch":
             actions[i] = 5
@@ -50,6 +50,7 @@ def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_paddi
         # Attacking has the lowest priority
         elif attack[i]:
             actions[i] = 0
+
         else:
             # No reasonable mapping (will be ignored after applying a mask)
             actions[i] = -1
