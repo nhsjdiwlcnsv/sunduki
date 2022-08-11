@@ -1,8 +1,7 @@
 import numpy as np
 
-from constants.modes import UNDERGROUND_MODE
+from constants.modes import *
 from src.env.ActionShaper import ActionShaper
-from src.env.normalizers import normalize_actions
 
 
 class Agent:
@@ -24,6 +23,19 @@ class Agent:
             env.render()
             self.obs, reward, done, info = env.step(action)
 
+    def stand_still(self, env):
+        env = ActionShaper(env, OVERGROUND_MODE)
+        xdif, zdif = 1, 1
+
+        while xdif >= 0.5 and zdif >= 0.5:
+            self.obs, reward, done, info = env.step(3)
+            self.obs, reward, done, info = env.step(4)
+
+            xdif = float(self.obs['location_stats']['xpos']) - round(float(self.obs['location_stats']['xpos']))
+            zdif = float(self.obs['location_stats']['zpos']) - round(float(self.obs['location_stats']['zpos']))
+
+            env.render()
+
     def gather_items(self, item, item_number, env, mode):
         # Wrap the env so the bot could use only relevant actions
         env = ActionShaper(env, mode)
@@ -34,8 +46,6 @@ class Agent:
         done = False
 
         while self.obs['inventory'][item] < item_number and not done:
-            env.render()
-
             # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
             # Call the model to predict the actions given the point of view
@@ -43,7 +53,6 @@ class Agent:
             # Apply the probabilities to the action list and choose an action
             action = np.random.choice(a=action_list, p=action_probabilities)
 
-            if mode == UNDERGROUND_MODE and 'mainhand' in self.obs['equipped_items']:
-                action = normalize_actions(['equip:stone_pickaxe'], env)
-
             self.obs, reward, done, info = env.step(action)
+
+            env.render()

@@ -27,19 +27,19 @@ def main():
     # Load the weights from the given path and gather some wood acting in the overground mode
     agent.load_brain("weights/adam-v2.2/adam-v2.2.ckpt")
     agent.gather_items('log', LOGS_TO_CHOP, env, OVERGROUND_MODE)
+    agent.stand_still(env)
 
     # Perform the actions below and acquire a wooden pickaxe
     # Then rotate the camera to look at the ground and prepare the area for mining
-    craft_wooden_pickaxe = normalize_actions(CRAFT_WOODEN_PICKAXE, env)
-    craft_torch = normalize_actions(CRAFT_TORCH, env)
+    craft_wooden_pickaxe = normalize_actions(CRAFT_W_PICKAXE, env)
     mine_down = normalize_actions(MINE_DOWN, env)
-    agent.carry_out(craft_wooden_pickaxe + craft_torch + mine_down, env)
+    agent.carry_out(craft_wooden_pickaxe + mine_down, env)
 
     agent.load_brain("weights/adam-v2.2.0/adam-v2.2.0.ckpt")
     agent.gather_items('cobblestone', COBBLESTONE_TO_MINE, env, UNDERGROUND_MODE)
 
     # Craft a stone pickaxe and a furnace. Prepare for mining iron ore.
-    craft_stone_pickaxe = normalize_actions(CRAFT_STONE_PICKAXE, env)
+    craft_stone_pickaxe = normalize_actions(CRAFT_S_PICKAXE, env)
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
     agent.carry_out(craft_stone_pickaxe + craft_furnace, env)
 

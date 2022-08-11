@@ -4,7 +4,7 @@ import re
 
 # This function gets the gym.spaces.Dict of actions and returns a numpy array of active actions during each step
 # Each element of the array is a number that corresponds to the index of the action in the action space
-def numerize_actions(actions, batch_size, vertical_padding=5, horizontal_padding=5):
+def numerize_actions(actions, batch_size, vertical_padding=5, horizontal_padding=5) -> np.ndarray:
     camera = actions["camera"].squeeze()
     attack = actions["attack"].squeeze()
     forward = actions["forward"].squeeze()
@@ -32,10 +32,7 @@ def numerize_actions(actions, batch_size, vertical_padding=5, horizontal_padding
             actions[i] = 5
 
         elif jump[i] and forward[i]:
-            if sprint[i]:
-                actions[i] = 5
-            else:
-                actions[i] = 6
+            actions[i] = 5 if sprint[i] else 6
 
         elif forward[i]:
             actions[i] = 4
@@ -47,7 +44,6 @@ def numerize_actions(actions, batch_size, vertical_padding=5, horizontal_padding
         elif right[i]:
             actions[i] = 3
 
-        # Attacking has the lowest priority
         elif attack[i]:
             actions[i] = 0
 
@@ -60,20 +56,17 @@ def numerize_actions(actions, batch_size, vertical_padding=5, horizontal_padding
 
 # This function gets an array of actions and returns a normalized (for the unwrapped env) sequence of action samples
 # where each action sample is a dictionary of actions with only one active action
-def normalize_actions(action_array, env):
+def normalize_actions(actions, env) -> list:
     action_sequence = []
 
-    for item in action_array:
-        act, obj = item.split(':')
-        action_sample = env.action_space.noop()
+    for action in actions:
+        for obj, quantity in actions[action].items():
+            action_sample = env.action_space.noop()
 
-        if obj.isnumeric() or re.search("^\[.*]$", obj):
-            obj = eval(obj)
+            if obj.isnumeric() or re.search("^\[.*]$", obj):
+                obj = eval(obj)
 
-        for action in action_sample:
-            if action == act:
-                action_sample[action] = obj
-
-        action_sequence.append(action_sample)
+            action_sample["craft" if action == "nearbyCraft" else action] = obj
+            action_sequence += [action_sample for _ in range(quantity)]
 
     return action_sequence

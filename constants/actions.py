@@ -1,30 +1,46 @@
-from constants.limits import LOGS_TO_CHOP, COBBLESTONE_TO_MINE
+from constants.limits import *
 
-CRAFT_WOODEN_PICKAXE = []
-CRAFT_WOODEN_PICKAXE += ['craft:planks'] * LOGS_TO_CHOP
-CRAFT_WOODEN_PICKAXE += ['craft:stick'] * round(((LOGS_TO_CHOP * 4) - 7) / 4)
-CRAFT_WOODEN_PICKAXE += ['craft:crafting_table']
-CRAFT_WOODEN_PICKAXE += ['camera:[180,0]']
-CRAFT_WOODEN_PICKAXE += ['forward:1'] * 60
-CRAFT_WOODEN_PICKAXE += ['attack:1'] * 20
-CRAFT_WOODEN_PICKAXE += ['jump:1'] * 20
-CRAFT_WOODEN_PICKAXE += ['place:crafting_table']
-CRAFT_WOODEN_PICKAXE += ['craft:wooden_pickaxe']
-CRAFT_WOODEN_PICKAXE += ['equip:wooden_pickaxe']
 
-CRAFT_TORCH = []
-CRAFT_TORCH += ['craft:torch'] * 2
-CRAFT_TORCH += ['attack:1'] * 20
+def place(block, optional=None) -> dict:
+    return {
+        **(optional if optional else {}),
+        'jump': {'1': 10},
+        'place': {block: 1},
+    }
 
-MINE_DOWN = []
-MINE_DOWN += ['attack:1'] * 500
 
-CRAFT_STONE_PICKAXE = []
-CRAFT_STONE_PICKAXE += ['camera:[180,0]']
-CRAFT_STONE_PICKAXE += ['jump:1'] * 20
-CRAFT_STONE_PICKAXE += ['place:crafting_table']
-CRAFT_STONE_PICKAXE += ['craft:stone_pickaxe'] * round((COBBLESTONE_TO_MINE - 8) / 3)
-CRAFT_STONE_PICKAXE += ['equip:stone_pickaxe']
+def craft_on_crafting_table(item, optional=None) -> dict:
+    return {
+        **(optional if optional else {}),
+        **PLACE_CRAFTING_TABLE,
+        'nearbyCraft': {item: 1},
+        **REMOVE_BLOCK,
+        'equip': {item: 1} if item != 'furnace' else {},
+    }
 
-CRAFT_FURNACE = []
-CRAFT_FURNACE += ['craft:furnace']
+
+def dig_down(steps) -> dict:
+    return {
+        'camera': {'[180, 0]': 1},
+        'attack': {'1': steps},
+    }
+
+
+CRAFT_BASIC_TOOLS = {
+    'craft': {
+        'planks': LOGS_TO_CHOP,
+        'stick': STICKS_QUANT,
+        'torch': TORCHES_QUANT,
+        'crafting_table': 1
+    },
+}
+
+REMOVE_BLOCK = dig_down(20)
+MINE_DOWN = dig_down(500)
+
+PLACE_CRAFTING_TABLE = place('crafting_table', REMOVE_BLOCK)
+PLACE_FURNACE = place('furnace', REMOVE_BLOCK)
+
+CRAFT_W_PICKAXE = craft_on_crafting_table('wooden_pickaxe', CRAFT_BASIC_TOOLS)
+CRAFT_S_PICKAXE = craft_on_crafting_table('stone_pickaxe')
+CRAFT_FURNACE = craft_on_crafting_table('furnace')
