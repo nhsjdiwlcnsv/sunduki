@@ -13,8 +13,10 @@ class Adam:
         # Define the model as a Sequential that takes an array of Keras layers
         self.model = tf.keras.Sequential([
             # First convolutional layer
-            layers.Conv2D(filters=64, kernel_size=(5, 5), activation='relu', input_shape=input_shape),  # Performs a 2D convolution over the input.
-            layers.MaxPooling2D((2, 2)),  # Reduces the size of the input by a factor of 2. This is useful for downsampling the image.
+            layers.Conv2D(filters=64, kernel_size=(5, 5), activation='relu', input_shape=input_shape),
+            # Performs a 2D convolution over the input.
+            layers.MaxPooling2D((2, 2)),
+            # Reduces the size of the input by a factor of 2. This is useful for downsampling the image.
 
             # Second convolutional layer
             layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'),
@@ -54,13 +56,14 @@ class Adam:
     def compile(self):
         self.model.compile(optimizer=self.optimizer, loss=self.loss, metrics=self.training_metrics)
 
-    def train(self, dataset_name, params, batch_size=16384, num_batches=3):
+    def train(self, dataset_name, save_path="weights/adam/adam.ckpt", batch_size=16384, num_batches=3):
         # Load the dataset and create a batch iterator
         data = minerl.data.make(dataset_name)
         iterator = BufferedBatchIter(data)
 
         # Get the checkpoint directory to save the model's weights using callback
-        checkpoint_path, checkpoint_dir, cp_callback = params
+        checkpoint_path = save_path  # Path to save the weights of the model
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1)
 
         # While iterating through the data, iterator feeds the model with the batches of data in order to train it
         for state, actions, _, _, _ in iterator.buffered_batch_iter(batch_size=batch_size, num_batches=num_batches):

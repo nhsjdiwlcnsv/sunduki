@@ -1,3 +1,4 @@
+import matplotlib.pyplot
 import numpy as np
 
 from constants.modes import *
@@ -25,14 +26,22 @@ class Agent:
 
     def stand_still(self, env):
         env = ActionShaper(env, OVERGROUND_MODE)
-        xdif, zdif = 1, 1
+        xdif, zdif = 0.5, 0.5
 
-        while xdif >= 0.5 and zdif >= 0.5:
-            self.obs, reward, done, info = env.step(3)
-            self.obs, reward, done, info = env.step(4)
+        while xdif > 0.7 and zdif > 0.7:
+            print("")
+            print(f'xdif: {abs(xdif)}, zdif: {abs(zdif)}')
+            print("")
 
-            xdif = float(self.obs['location_stats']['xpos']) - round(float(self.obs['location_stats']['xpos']))
-            zdif = float(self.obs['location_stats']['zpos']) - round(float(self.obs['location_stats']['zpos']))
+            self.obs, reward, done, info = env.step(1)
+            self.obs, reward, done, info = env.step(10)
+
+            xdif = abs(float(self.obs['location_stats']['xpos']) - round(float(self.obs['location_stats']['xpos'])))
+            zdif = abs(float(self.obs['location_stats']['zpos']) - round(float(self.obs['location_stats']['zpos'])))
+
+            print("")
+            print(f'xdif: {abs(xdif)}, zdif: {abs(zdif)}')
+            print("")
 
             env.render()
 
