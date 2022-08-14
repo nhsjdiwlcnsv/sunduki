@@ -17,8 +17,11 @@ def main():
 
     env = gym.make('CustomMineRLEnv-v0')
     env.seed(203)
+
     # Start Minecraft by resetting the environment
     obs = env.reset()
+    print("")
+    print(obs)
 
     # Create the model and pass it to MineRL agent
     model = Adam((64, 64, 3), 14)

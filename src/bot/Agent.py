@@ -1,6 +1,4 @@
 import math
-
-import matplotlib.pyplot
 import numpy as np
 
 from constants.modes import *
@@ -52,6 +50,7 @@ class Agent:
         done = False
 
         while self.obs['inventory'][item] < item_number and not done:
+            # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
             # Call the model to predict the actions given the point of view
             action_probabilities = np.array(self.brain(pov)).squeeze()
