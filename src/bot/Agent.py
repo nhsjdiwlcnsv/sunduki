@@ -1,8 +1,11 @@
+import math
+
 import matplotlib.pyplot
 import numpy as np
 
 from constants.modes import *
 from src.env.ActionShaper import ActionShaper
+from src.env.normalizers import normalize_actions
 
 
 class Agent:
@@ -26,22 +29,16 @@ class Agent:
 
     def stand_still(self, env):
         env = ActionShaper(env, OVERGROUND_MODE)
-        xdif, zdif = 0.5, 0.5
+        xpos, zpos = self.obs['location_stats']['xpos'], self.obs['location_stats']['zpos']
+        xdif, zdif = xpos - math.floor(xpos), zpos - math.floor(zpos)
 
-        while xdif > 0.7 and zdif > 0.7:
-            print("")
-            print(f'xdif: {abs(xdif)}, zdif: {abs(zdif)}')
-            print("")
+        while abs(xdif) > 0.7 or abs(zdif) > 0.7:
 
             self.obs, reward, done, info = env.step(1)
             self.obs, reward, done, info = env.step(10)
 
-            xdif = abs(float(self.obs['location_stats']['xpos']) - round(float(self.obs['location_stats']['xpos'])))
-            zdif = abs(float(self.obs['location_stats']['zpos']) - round(float(self.obs['location_stats']['zpos'])))
-
-            print("")
-            print(f'xdif: {abs(xdif)}, zdif: {abs(zdif)}')
-            print("")
+            xpos, zpos = self.obs['location_stats']['xpos'], self.obs['location_stats']['zpos']
+            xdif, zdif = xpos - math.floor(xpos), zpos - math.floor(zpos)
 
             env.render()
 
@@ -55,7 +52,6 @@ class Agent:
         done = False
 
         while self.obs['inventory'][item] < item_number and not done:
-            # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
             # Call the model to predict the actions given the point of view
             action_probabilities = np.array(self.brain(pov)).squeeze()

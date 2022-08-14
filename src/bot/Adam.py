@@ -19,7 +19,7 @@ class Adam:
             # Reduces the size of the input by a factor of 2. This is useful for downsampling the image.
 
             # Second convolutional layer
-            layers.Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same'),
+            layers.Conv2D(filters=128, kernel_size=(5, 5), activation='relu', padding='same'),
             layers.MaxPooling2D((2, 2)),
 
             # Third convolutional layer

@@ -1,7 +1,9 @@
+import math
+
 LOGS_TO_CHOP = 5
-COBBLESTONE_TO_MINE = 14
+COBBLESTONE_TO_MINE = 17
 IRON_TO_MINE = 3
 
-STICKS_QUANT = round(((LOGS_TO_CHOP * 4) - 7) / 4)
-S_PICKAXES_QUANT = 2
+STICKS_QUANT = math.floor(((LOGS_TO_CHOP * 4) - 7) / 4)
+S_PICKAXES_QUANT = math.floor((17 - 8) / 3)
 TORCHES_QUANT = 4

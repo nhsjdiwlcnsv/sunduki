@@ -4,7 +4,7 @@ import re
 
 # This function gets the gym.spaces.Dict of actions and returns a numpy array of active actions during each step
 # Each element of the array is a number that corresponds to the index of the action in the action space
-def numerize_actions(actions, batch_size, vertical_padding=9, horizontal_padding=7.5) -> np.ndarray:
+def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_padding=6) -> np.ndarray:
     camera = actions["camera"].squeeze()
     attack = actions["attack"].squeeze()
     forward = actions["forward"].squeeze()
@@ -39,11 +39,11 @@ def numerize_actions(actions, batch_size, vertical_padding=9, horizontal_padding
         elif attack[i]:
             numerized_actions[i] = 0
 
-        elif left[i]:
-            numerized_actions[i] = 13
-        elif right[i]:
-            numerized_actions[i] = 14
         elif back[i]:
+            numerized_actions[i] = 13
+        elif left[i]:
+            numerized_actions[i] = 14
+        elif right[i]:
             numerized_actions[i] = 15
 
         else:
