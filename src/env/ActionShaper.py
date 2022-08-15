@@ -21,8 +21,8 @@ class ActionShaper(gym.ActionWrapper, ABC):
             # env.action_space.noop() returns a sample without active actions.
             act = self.env.action_space.noop()
             for action, value in action_pair:
+                # act is a sample of action_space where only the required action is active.
                 act[action] = value
-                # 'act' is a sample of action_space where only the required action is active.
 
             self.new_action_space.append(act)
 

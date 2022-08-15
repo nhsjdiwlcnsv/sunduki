@@ -10,7 +10,7 @@ ENV_DOC = """
     The hero is able to move around in the environment and pick up items.
     """
 
-ENV_LENGTH = 15000
+ENV_LENGTH = 150000
 
 none = 'none'
 other = 'other'
@@ -27,7 +27,7 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
         return [handlers.DefaultWorldGenerator()]
 
     def create_agent_start(self) -> List[Handler]:
-        return [handlers.SimpleInventoryAgentStart([dict(type="coal", quantity=3)])]
+        return [handlers.SimpleInventoryAgentStart([dict(type="coal", quantity=5)])]
 
     def create_rewardables(self) -> List[Handler]:
         return [
@@ -43,7 +43,7 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
                 dict(type="iron_ore", amount=1, reward=128),
                 dict(type="iron_ingot", amount=1, reward=256),
                 dict(type="iron_pickaxe", amount=1, reward=512),
-                dict(type="diamond", amount=1, reward=1024),
+                dict(type="diamond", amount=1, reward=1024)
             ]),
         ]
 
@@ -60,35 +60,39 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
         ]
 
     def create_observables(self) -> List[Handler]:
-        return super().create_observables() + [
+        return [
             handlers.FlatInventoryObservation([
-                'coal',
-                'cobblestone',
-                'crafting_table',
                 'dirt',
-                'furnace',
-                'iron_axe',
-                'iron_ingot',
-                'iron_ore',
-                'iron_pickaxe',
+                'coal',
+                'torch',
                 'log',
                 'planks',
                 'stick',
+                'crafting_table',
+                'wooden_pickaxe',
                 'stone',
-                'stone_axe',
+                'cobblestone',
+                'furnace',
                 'stone_pickaxe',
-                'torch',
-                'wooden_axe',
+                'iron_ore',
+                'iron_ingot',
+                'iron_pickaxe'
             ]),
             handlers.EquippedItemObservation(
                 ['air', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', none, other],
                 _default='air',
                 _other=other
             ),
+            handlers.POVObservation((64, 64)),
+            handlers.CompassObservation(),
+            handlers.ObservationFromCurrentLocation()
         ]
 
     def create_server_initial_conditions(self) -> List[Handler]:
-        return [handlers.TimeInitialCondition(True, 23000)]
+        return [
+            handlers.TimeInitialCondition(True, 0),
+            handlers.SpawningInitialCondition(False),
+        ]
 
     def create_server_quit_producers(self):
         return []
