@@ -5,5 +5,5 @@ COBBLESTONE_TO_MINE = 17
 IRON_TO_MINE = 3
 
 STICKS_QUANT = math.floor(((LOGS_TO_CHOP * 4) - 7) / 4)
-S_PICKAXES_QUANT = math.floor((17 - 8) / 3)
+S_PICKAXES_QUANT = math.floor((COBBLESTONE_TO_MINE - 8) / 3)
 TORCHES_QUANT = 4

@@ -1,9 +1,11 @@
 import math
 import numpy as np
 
+from constants.actions import CRAFT_S_PICKAXE
 from constants.env import SEED
 from constants.modes import *
 from src.env.ActionShaper import ActionShaper
+from src.env.normalizers import normalize_actions
 from src.recorder.recorder import Recorder
 
 
@@ -49,7 +51,14 @@ class Agent:
         action_list = np.arange(actions_number)
         done = False
 
+        equipped_item = self.obs['equipped_items']['mainhand']['type']
+        have_s_pickaxes = self.obs['inventory']['stone_pickaxe'] > 0
+
         while self.obs['inventory'][item] < item_number and not done:
+
+            if equipped_item != 'stone_pickaxe' and mode == UNDERGROUND_MODE and have_s_pickaxes:
+                self.carry_out(normalize_actions({'equip': {'stone_pickaxe': 1}}, env), env)
+
             # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
             # Call the model to predict the actions given the point of view
