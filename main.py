@@ -2,27 +2,26 @@ import gym
 
 from src.bot.Adam import Adam
 from src.bot.Agent import Agent
+from src.recorder.recorder import Recorder
 from src.env.normalizers import normalize_actions
-from src.env.env_specs import CustomMineRLEnv
 from constants.actions import *
 from constants.limits import *
 from constants.modes import *
+from constants.env import SEED
 
 
 def main():
-    # Create the environment to perform the actions on. Currently, the bot uses MineRLObtainDiamond-v0 env
-    # because it is the closest env to the original conditions of player in Minecraft survival mode
-    abs_env = CustomMineRLEnv()
-    abs_env.register()
-
     env = gym.make('CustomMineRLEnv-v0')
-    env.seed(203)
+    env.seed(SEED)
+
     # Start Minecraft by resetting the environment
     obs = env.reset()
 
+    monitor = Recorder(SEED)
+
     # Create the model and pass it to MineRL agent
     model = Adam((64, 64, 3), 14)
-    agent = Agent(model, obs)
+    agent = Agent(model, obs, monitor)
 
     # Load the weights from the given path and gather some wood acting in the overground mode
     agent.load_brain("weights/adam-v3.5/adam-v3.5.ckpt")
@@ -36,7 +35,7 @@ def main():
     agent.carry_out(craft_wooden_pickaxe + mine_down, env)
 
     model = Adam((64, 64, 3), 16)
-    agent = Agent(model, obs)
+    agent = Agent(model, obs, monitor)
 
     agent.load_brain("weights/adam-v3.5.0/adam-v3.5.0.ckpt")
     agent.gather_items('cobblestone', COBBLESTONE_TO_MINE, env, UNDERGROUND_MODE)

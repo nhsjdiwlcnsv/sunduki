@@ -27,26 +27,22 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
         return [handlers.DefaultWorldGenerator()]
 
     def create_agent_start(self) -> List[Handler]:
-        return [
-            handlers.SimpleInventoryAgentStart([
-                dict(type="coal", quantity=5),
-            ])
-        ]
+        return [handlers.SimpleInventoryAgentStart([dict(type="coal", quantity=5)])]
 
     def create_rewardables(self) -> List[Handler]:
         return [
             handlers.RewardForCollectingItemsOnce([
                 dict(type="log", amount=1, reward=1),
                 dict(type="planks", amount=1, reward=2),
-                dict(type="stick", amount=1, reward=4),
+                dict(type="stick", amount=1, reward=2),
                 dict(type="crafting_table", amount=1, reward=4),
                 dict(type="wooden_pickaxe", amount=1, reward=8),
                 dict(type="cobblestone", amount=1, reward=16),
                 dict(type="furnace", amount=1, reward=32),
-                dict(type="stone_pickaxe", amount=1, reward=32),
-                dict(type="iron_ore", amount=1, reward=64),
-                dict(type="iron_ingot", amount=1, reward=128),
-                dict(type="iron_pickaxe", amount=1, reward=256),
+                dict(type="stone_pickaxe", amount=1, reward=64),
+                dict(type="iron_ore", amount=1, reward=128),
+                dict(type="iron_ingot", amount=1, reward=256),
+                dict(type="iron_pickaxe", amount=1, reward=512),
                 dict(type="diamond", amount=1, reward=1024)
             ]),
         ]
