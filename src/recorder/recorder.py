@@ -14,7 +14,7 @@ class Recorder:
 
     def record(self, action, mode=None):
         # Unfortunately, due to the fact that the original env is being wrapped and unwrapped many times for many
-        # purposes, we need to first create a fake env in order to get the action space of original env, and than
+        # purposes, we need to first create a fake env in order to get the action space of original env, and then
         # adjust our action to its shape.
         draft_env = ActionShaper(self.env, mode) if mode else self.env
         act = draft_env.new_action_space[action] if mode else action

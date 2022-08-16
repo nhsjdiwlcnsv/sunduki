@@ -1,3 +1,4 @@
+from constants.env import MAX_STEPS, none, other
 from minerl.herobraine.env_specs.simple_embodiment import SimpleEmbodimentEnvSpec
 from minerl.herobraine.hero.handler import Handler
 from typing import List
@@ -5,23 +6,13 @@ from abc import ABC
 
 import minerl.herobraine.hero.handlers as handlers
 
-ENV_DOC = """
-    The environment is a simple embodiment of the hero's actions.
-    The hero is able to move around in the environment and pick up items.
-    """
-
-ENV_LENGTH = 150000
-
-none = 'none'
-other = 'other'
-
 
 class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
     def __init__(self, *args, **kwargs):
         if 'name' not in kwargs:
             kwargs['name'] = 'CustomMineRLEnv-v0'
 
-        super().__init__(*args, max_episode_steps=ENV_LENGTH, reward_threshold=100.0, **kwargs)
+        super().__init__(*args, max_episode_steps=MAX_STEPS, reward_threshold=100.0, **kwargs)
 
     def create_server_world_generators(self) -> List[Handler]:
         return [handlers.DefaultWorldGenerator()]

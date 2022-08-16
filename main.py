@@ -1,4 +1,5 @@
 import gym
+import constants.env as env_data
 
 from src.bot.Adam import Adam
 from src.bot.Agent import Agent
@@ -11,6 +12,9 @@ from constants.env import SEED
 
 
 def main():
+    # Register the environments
+    env_data.register_envs()
+
     env = gym.make('CustomMineRLEnv-v0')
     env.seed(SEED)
 
