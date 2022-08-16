@@ -37,9 +37,7 @@ def form_mode(mode: Modes):
         [('camera', [0, HORIZONTAL_ANGLE]), ('forward', 1)],
 
         [('back', 1)],
-        [('left', 1)] if mode == Modes.overground else [],
-        [('right', 1)] if mode == Modes.overground else [],
-    ]
+    ] + ([[('left', 1)], [('right', 1)]] if mode == Modes.underground else [])
 
 
 OVERGROUND_MODE = form_mode(Modes.overground)

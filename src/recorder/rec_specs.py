@@ -5,16 +5,6 @@ from abc import ABC
 
 import minerl.herobraine.hero.handlers as handlers
 
-REC_DOC = """
-    This env is just a higher resolution version of the CustomMineRLEnv
-    that allows us to record bot's progress.
-    """
-
-REC_LENGTH = 150000
-
-none = 'none'
-other = 'other'
-
 
 class RecorderEnv(CustomMineRLEnv, ABC):
     def __init__(self, *args, **kwargs):
@@ -24,33 +14,7 @@ class RecorderEnv(CustomMineRLEnv, ABC):
         super().__init__(*args, **kwargs)
 
     def create_observables(self) -> List[Handler]:
-        return [
-            handlers.FlatInventoryObservation([
-                'dirt',
-                'coal',
-                'torch',
-                'log',
-                'planks',
-                'stick',
-                'crafting_table',
-                'wooden_pickaxe',
-                'stone',
-                'cobblestone',
-                'furnace',
-                'stone_pickaxe',
-                'iron_ore',
-                'iron_ingot',
-                'iron_pickaxe'
-            ]),
-            handlers.EquippedItemObservation(
-                ['air', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', none, other],
-                _default='air',
-                _other=other
-            ),
-            handlers.POVObservation((360, 360)),
-            handlers.CompassObservation(),
-            handlers.ObservationFromCurrentLocation()
-        ]
+        return [handlers.POVObservation((240, 240))]
 
     def create_server_quit_producers(self):
         return []

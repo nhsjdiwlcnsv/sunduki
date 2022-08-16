@@ -1,5 +1,6 @@
 logs/
 venv/
 .idea/
-**/__pycache__/
+/**/__pycache__/
+/public/videos
 .DS_Store
