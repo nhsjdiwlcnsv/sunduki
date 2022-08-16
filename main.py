@@ -22,6 +22,7 @@ def main():
 
     # Create the model and pass it to MineRL agent
     model = Adam((64, 64, 3), 14)
+    model.compile()
     agent = Agent(model, obs, monitor)
 
     # Load the weights from the given path and gather some wood acting in the overground mode
