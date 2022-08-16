@@ -17,6 +17,7 @@ def main():
     # Start Minecraft by resetting the environment
     obs = env.reset()
 
+    # Create the monitor to record videos
     monitor = Recorder(SEED)
 
     # Create the model and pass it to MineRL agent
@@ -30,11 +31,13 @@ def main():
     agent.stand_still(env)
 
     # Perform the actions below and acquire a wooden pickaxe
-    # Then rotate the camera to look at the ground and prepare the area for mining
+    # Then rotate the camera to look at the ground and prepare the area for mining cobblestone
     craft_wooden_pickaxe = normalize_actions(CRAFT_W_PICKAXE, env)
     mine_down = normalize_actions(MINE_DOWN, env)
     agent.carry_out(craft_wooden_pickaxe + mine_down, env)
 
+    # Recreate the model, so it can fit to the new action mode (underground in that specific case)
+    # and once again pass it to the agent and load new weights.
     model = Adam((64, 64, 3), 16)
     agent = Agent(model, obs, monitor)
 
@@ -47,7 +50,6 @@ def main():
     mine_straight = normalize_actions(MINE_STRAIGHT, env)
     agent.carry_out(craft_stone_pickaxe + craft_furnace + mine_straight, env)
 
-    # After the bot acquired some torches to light up the territory it is time to find some iron ore.
     agent.gather_items('iron_ore', IRON_TO_MINE, env, UNDERGROUND_MODE)
 
     smelt_iron = normalize_actions(SMELT_IRON, env)

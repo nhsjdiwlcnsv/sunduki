@@ -14,6 +14,9 @@ class Agent:
         self.brain = agent_brain
         self.brain.compile()
 
+        # Monitor is used to record the bot's progress into videos. Its method record() gets an action,
+        # then it executes it in his high resolution environment and records the result. Using this technique,
+        # we can get a more appealing video than the one produced by the gym's default environment.
         self.monitor = monitor
         self.obs = obs
 
@@ -28,11 +31,18 @@ class Agent:
             self.obs, reward, done, info = env.step(action)
             self.monitor.record(action)
 
+    # This method is used to correct the bot's situation after he has gathered all the logs.
+    # It is vitally important because the bot needs to stand right on a block, which will allow
+    # him to mine down under himself.
     def stand_still(self, env):
         env = ActionShaper(env, OVERGROUND_MODE)
+        # Calculate bot's position in the world by getting the coordinates he is standing on
+        # and then calculate the difference between the bot's position and the nearest whole number.
         xpos, zpos = self.obs['location_stats']['xpos'], self.obs['location_stats']['zpos']
         xdif, zdif = xpos - math.floor(xpos), zpos - math.floor(zpos)
 
+        # If the difference is greater than 0.7 (once again, empiric method), the bot must move
+        # forward and right (if needed) to stand on the block.
         while abs(xdif) > 0.7 or abs(zdif) > 0.7:
             self.obs, reward, done, info = env.step(1)
             self.obs, reward, done, info = env.step(10)
@@ -51,11 +61,13 @@ class Agent:
         action_list = np.arange(actions_number)
         done = False
 
+        # equipped item shows which item does the bot hold in the main hand.
         equipped_item = self.obs['equipped_items']['mainhand']['type']
+        # have_space shows whether the bot has stone pickaxes in its inventory.
         have_s_pickaxes = self.obs['inventory']['stone_pickaxe'] > 0
 
         while self.obs['inventory'][item] < item_number and not done:
-
+            # If bot's current stone pickaxe is broken, he must equip a new one from his inventory.
             if equipped_item != 'stone_pickaxe' and mode == UNDERGROUND_MODE and have_s_pickaxes:
                 self.carry_out(normalize_actions({'equip': {'stone_pickaxe': 1}}, env), env)
 
