@@ -44,6 +44,12 @@ class Agent:
         # If the difference is greater than 0.7 (once again, empiric method), the bot must move
         # forward and right (if needed) to stand on the block.
         while abs(xdif) > 0.7 or abs(zdif) > 0.7:
+            print("")
+            print("")
+            print(f'xpos: {xpos}, zpos: {zpos}')
+            print("")
+            print(f'xdif: {xdif}, zdif: {zdif}')
+
             self.obs, reward, done, info = env.step(1)
             self.obs, reward, done, info = env.step(10)
             self.monitor.record(1, OVERGROUND_MODE)
