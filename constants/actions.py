@@ -49,9 +49,9 @@ CRAFT_BASIC_TOOLS = {
     },
 }
 
-REMOVE_CRAFTING_TABLE = dig_down(100)
+REMOVE_CRAFTING_TABLE = dig_down(150)
 REMOVE_BLOCK = dig_down(20)
-MINE_DOWN = dig_down(350)
+MINE_DOWN = dig_down(500)
 
 PLACE_CRAFTING_TABLE = place('crafting_table', REMOVE_BLOCK)
 PLACE_FURNACE = place('furnace', REMOVE_BLOCK)

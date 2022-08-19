@@ -4,7 +4,7 @@ import re
 
 # This function gets the gym.spaces.Dict of actions and returns a numpy array of active actions during each step
 # Each element of the array is a number that corresponds to the index of the action in the action space
-def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_padding=6) -> np.ndarray:
+def numerize_actions(actions, batch_size, vertical_padding=10, horizontal_padding=6) -> np.ndarray:
     camera = actions["camera"].squeeze()
     attack = actions["attack"].squeeze()
     forward = actions["forward"].squeeze()
@@ -18,14 +18,14 @@ def numerize_actions(actions, batch_size, vertical_padding=7.5, horizontal_paddi
     numerized_actions = np.zeros((batch_size,), dtype=np.int64)
 
     for i in range(batch_size):
-        if camera[i][0] <= -horizontal_padding:
-            numerized_actions[i] = 9 if attack[i] else 5
+        if camera[i][0] <= -horizontal_padding * 1.25:
+            numerized_actions[i] = 9 if attack[i] else 7
         elif camera[i][0] >= horizontal_padding:
-            numerized_actions[i] = 10 if attack[i] else 6
+            numerized_actions[i] = 10 if attack[i] else 8
         elif camera[i][1] <= -vertical_padding:
-            numerized_actions[i] = 11 if forward[i] else 7
+            numerized_actions[i] = 11 if forward[i] else 5
         elif camera[i][1] >= vertical_padding:
-            numerized_actions[i] = 12 if forward[i] else 8
+            numerized_actions[i] = 12 if forward[i] else 6
 
         elif forward[i] and jump[i]:
             numerized_actions[i] = 4 if sprint[i] else 2

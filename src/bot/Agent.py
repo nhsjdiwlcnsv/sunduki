@@ -66,10 +66,21 @@ class Agent:
         # have_space shows whether the bot has stone pickaxes in its inventory.
         have_s_pickaxes = self.obs['inventory']['stone_pickaxe'] > 0
 
+        step = 0
         while self.obs['inventory'][item] < item_number and not done:
             # If bot's current stone pickaxe is broken, he must equip a new one from his inventory.
             if equipped_item != 'stone_pickaxe' and mode == UNDERGROUND_MODE and have_s_pickaxes:
-                self.carry_out(normalize_actions({'equip': {'stone_pickaxe': 1}}, env), env)
+                print("")
+                print("")
+                print("")
+                print("Stone pickaxe is broken")
+                env = env.unwrapped
+                equip_pickaxe = normalize_actions({'equip': {'stone_pickaxe': 1}}, env)
+                self.obs, reward, done, info = env.step(equip_pickaxe)
+                env = ActionShaper(env, mode)
+                print("")
+                print("")
+                print("")
 
             # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
@@ -80,3 +91,15 @@ class Agent:
 
             self.obs, reward, done, info = env.step(action)
             self.monitor.record(action, mode)
+            step += 1
+
+            if step % 200 == 0:
+                print("")
+                print("")
+                print(f'step: {step}')
+                print("")
+                print(f'inventory: {self.obs["inventory"]}')
+                print("")
+                print(f'equipped item: {equipped_item}')
+                print("")
+                print(f'have stone pickaxes: {have_s_pickaxes}')

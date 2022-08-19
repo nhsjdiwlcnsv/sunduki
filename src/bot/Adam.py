@@ -23,16 +23,17 @@ class Adam:
             layers.MaxPooling2D((2, 2)),
             # Dropout is a regularization technique that randomly drops out units in a neural network. It is used to prevent overfitting.
             # It disables some units in the network with a rate of p. And thus, it generalizes the output.
-            layers.Dropout(0.2),
+            layers.Dropout(0.1),
 
             # Third convolutional layer
             layers.Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same'),
             layers.MaxPooling2D((2, 2)),
-            layers.Dropout(0.2),
+            layers.Dropout(0.15),
 
             # Fourth convolutional layer
             layers.Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same'),
             layers.MaxPooling2D((2, 2)),
+            layers.Dropout(0.1),
 
             # After performing the convolutional layers, the input is flattened to a 1D array and passed to the dense layers.
             layers.Flatten(),
