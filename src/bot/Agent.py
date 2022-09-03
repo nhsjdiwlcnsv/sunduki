@@ -43,7 +43,7 @@ class Agent:
 
         # If the difference is greater than 0.7 (once again, empiric method), the bot must move
         # forward and right (if needed) to stand on the block.
-        while abs(xdif) > 0.7 or abs(zdif) > 0.7:
+        while abs(xdif) > 0.7 or abs(xdif) < 0.3 or abs(zdif) > 0.7 or abs(zdif) < 0.3:
             print("")
             print("")
             print(f'xpos: {xpos}, zpos: {zpos}')
@@ -51,12 +51,17 @@ class Agent:
             print(f'xdif: {xdif}, zdif: {zdif}')
 
             self.obs, reward, done, info = env.step(1)
-            self.obs, reward, done, info = env.step(10)
+            self.obs, reward, done, info = env.step(15)
             self.monitor.record(1, OVERGROUND_MODE)
-            self.monitor.record(10, OVERGROUND_MODE)
+            self.monitor.record(15, OVERGROUND_MODE)
 
             xpos, zpos = self.obs['location_stats']['xpos'], self.obs['location_stats']['zpos']
             xdif, zdif = xpos - math.floor(xpos), zpos - math.floor(zpos)
+
+            print("")
+            print(f'xpos: {xpos}, zpos: {zpos}')
+            print("")
+            print(f'xdif: {xdif}, zdif: {zdif}')
 
     def gather_items(self, item, item_number, env, mode):
         # Wrap the env so the bot could use only relevant actions

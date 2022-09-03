@@ -8,7 +8,7 @@ from src.env.ActionShaper import ActionShaper
 class Recorder:
     def __init__(self, seed):
         self.env = gym.make('RecorderEnv-v0')
-        self.env = gym.wrappers.Monitor(self.env, './public/videos', force=True)
+        self.env = gym.wrappers.Monitor(self.env, './public/videos', video_callable=False, force=True)
         self.env.seed(seed)
         self.env.reset()
 
