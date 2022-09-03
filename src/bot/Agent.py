@@ -35,7 +35,7 @@ class Agent:
     # It is vitally important because the bot needs to stand right on a block, which will allow
     # him to mine down under himself.
     def stand_still(self, env):
-        env = ActionShaper(env, OVERGROUND_MODE)
+        env = ActionShaper(env, UNDERGROUND_MODE)
         # Calculate bot's position in the world by getting the coordinates he is standing on
         # and then calculate the difference between the bot's position and the nearest whole number.
         xpos, zpos = self.obs['location_stats']['xpos'], self.obs['location_stats']['zpos']
@@ -43,11 +43,12 @@ class Agent:
 
         # If the difference is greater than 0.7 (once again, empiric method), the bot must move
         # forward and right (if needed) to stand on the block.
-        while abs(xdif) > 0.7 or abs(zdif) > 0.7:
+        while abs(xdif) > 0.7 or abs(xdif) < 0.3 or abs(zdif) > 0.7 or abs(zdif) < 0.3:
+
             self.obs, reward, done, info = env.step(1)
-            self.obs, reward, done, info = env.step(10)
-            self.monitor.record(1, OVERGROUND_MODE)
-            self.monitor.record(10, OVERGROUND_MODE)
+            self.obs, reward, done, info = env.step(15)
+            self.monitor.record(1, UNDERGROUND_MODE)
+            self.monitor.record(15, UNDERGROUND_MODE)
 
             xpos, zpos = self.obs['location_stats']['xpos'], self.obs['location_stats']['zpos']
             xdif, zdif = xpos - math.floor(xpos), zpos - math.floor(zpos)
@@ -66,11 +67,14 @@ class Agent:
         # have_space shows whether the bot has stone pickaxes in its inventory.
         have_s_pickaxes = self.obs['inventory']['stone_pickaxe'] > 0
 
+        step = 0
         while self.obs['inventory'][item] < item_number and not done:
             # If bot's current stone pickaxe is broken, he must equip a new one from his inventory.
             if equipped_item != 'stone_pickaxe' and mode == UNDERGROUND_MODE and have_s_pickaxes:
-                self.carry_out(normalize_actions({'equip': {'stone_pickaxe': 1}}, env), env)
-
+                env = env.unwrapped
+                equip_pickaxe = normalize_actions({'equip': {'stone_pickaxe': 1}}, env)
+                self.obs, reward, done, info = env.step(equip_pickaxe)
+                env = ActionShaper(env, mode)
             # Normalize agent's POV, so it could be fed to the model
             pov = (self.obs['pov'].astype(np.float) / 255.0).reshape(1, 64, 64, 3)
             # Call the model to predict the actions given the point of view
@@ -80,3 +84,4 @@ class Agent:
 
             self.obs, reward, done, info = env.step(action)
             self.monitor.record(action, mode)
+            step += 1

@@ -2,5 +2,4 @@ logs/
 venv/
 .idea/
 /**/__pycache__/
-/public/videos
 .DS_Store

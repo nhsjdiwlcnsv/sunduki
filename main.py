@@ -1,4 +1,5 @@
 import gym
+
 import constants.env as env_data
 
 from src.bot.Adam import Adam
@@ -26,7 +27,6 @@ def main():
 
     # Create the model and pass it to MineRL agent
     model = Adam((64, 64, 3), 14)
-    model.compile()
     agent = Agent(model, obs, monitor)
 
     # Load the weights from the given path and gather some wood acting in the overground mode
@@ -45,7 +45,7 @@ def main():
     model = Adam((64, 64, 3), 16)
     agent = Agent(model, obs, monitor)
 
-    agent.load_brain("weights/adam-v3.5.0/adam-v3.5.0.ckpt")
+    agent.load_brain("weights/adam-v3.5.1/adam-v3.5.1.ckpt")
     agent.gather_items('cobblestone', COBBLESTONE_TO_MINE, env, UNDERGROUND_MODE)
 
     # Craft a stone pickaxe and a furnace. Prepare for mining iron ore.

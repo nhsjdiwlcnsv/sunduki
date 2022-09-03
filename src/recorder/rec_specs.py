@@ -14,7 +14,7 @@ class RecorderEnv(CustomMineRLEnv, ABC):
         super().__init__(*args, **kwargs)
 
     def create_observables(self) -> List[Handler]:
-        return [handlers.POVObservation((240, 240))]
+        return [handlers.POVObservation((360, 360))]
 
     def create_server_quit_producers(self):
         return []
