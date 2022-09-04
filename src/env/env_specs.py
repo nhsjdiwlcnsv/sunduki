@@ -20,9 +20,6 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
     def create_agent_start(self) -> List[Handler]:
         return [
             handlers.SimpleInventoryAgentStart([
-                dict(type="coal", quantity=5),
-                dict(type="log", quantity=5),
-                dict(type="cobblestone", quantity=17)
             ])
         ]
 
