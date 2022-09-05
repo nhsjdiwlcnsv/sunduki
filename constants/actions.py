@@ -55,6 +55,7 @@ MINE_DOWN = dig_down(500)
 
 PLACE_CRAFTING_TABLE = place('crafting_table', REMOVE_BLOCK)
 PLACE_FURNACE = place('furnace', REMOVE_BLOCK)
+PLACE_TORCH = place('torch')
 
 # Before crafting any pickaxes, the bot must craft planks, sticks, torches, and crafting table itself.
 # After that, the bot can craft a wooden pickaxe and then, after obtaining 17 cobblestone, it will craft
