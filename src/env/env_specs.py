@@ -1,4 +1,5 @@
 from constants.env import MAX_STEPS, none, other
+from constants.limits import DIAMONDS_TO_MINE
 from minerl.herobraine.env_specs.simple_embodiment import SimpleEmbodimentEnvSpec
 from minerl.herobraine.hero.handler import Handler
 from typing import List
@@ -20,6 +21,9 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
     def create_agent_start(self) -> List[Handler]:
         return [
             handlers.SimpleInventoryAgentStart([
+                dict(type="coal", quantity=5),
+                dict(type="diamond_axe", quantity=1),
+                dict(type="diamond_pickaxe", quantity=1)
             ])
         ]
 
@@ -42,12 +46,12 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
         ]
 
     def create_agent_handlers(self) -> List[Handler]:
-        return [handlers.AgentQuitFromPossessingItem([dict(type="diamond", amount=1)])]
+        return [handlers.AgentQuitFromPossessingItem([dict(type="diamond", amount=DIAMONDS_TO_MINE)])]
 
     def create_actionables(self) -> List[Handler]:
         return super().create_actionables() + [
             handlers.PlaceBlock([none, 'dirt', 'stone', 'cobblestone', 'crafting_table', 'furnace', 'torch'], _other=none, _default=none),
-            handlers.EquipAction([none, 'air', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe'], _other=none, _default=none),
+            handlers.EquipAction([none, 'air', 'diamond_axe', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', 'diamond_pickaxe'], _other=none, _default=none),
             handlers.CraftAction([none, 'torch', 'stick', 'planks', 'crafting_table'], _other=none, _default=none),
             handlers.CraftNearbyAction([none, 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', 'furnace'], _other=none, _default=none),
             handlers.SmeltItemNearby([none, 'iron_ingot', 'coal'], _other=none, _default=none),
@@ -56,6 +60,9 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
     def create_observables(self) -> List[Handler]:
         return [
             handlers.FlatInventoryObservation([
+                'diamond',
+                'diamond_axe',
+                'diamond_pickaxe',
                 'dirt',
                 'coal',
                 'torch',
@@ -73,7 +80,7 @@ class CustomMineRLEnv(SimpleEmbodimentEnvSpec, ABC):
                 'iron_pickaxe'
             ]),
             handlers.EquippedItemObservation(
-                ['air', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', none, other],
+                ['air', 'diamond_axe', 'diamond_pickaxe', 'wooden_pickaxe', 'stone_pickaxe', 'iron_pickaxe', none, other],
                 _default='air',
                 _other=other
             ),

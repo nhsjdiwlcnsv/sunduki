@@ -1,5 +1,5 @@
 import gym
-
+import logging
 import constants.env as env_data
 
 from src.bot.Adam import Adam
@@ -15,6 +15,7 @@ from constants.env import SEED
 def main():
     # Register the environments
     env_data.register_envs()
+    logging.basicConfig(level=logging.DEBUG)
 
     env = gym.make('CustomMineRLEnv-v0')
     env.seed(SEED)
@@ -31,6 +32,7 @@ def main():
 
     # Load the weights from the given path and gather some wood acting in the overground mode
     agent.load_brain("weights/adam-v3.5/adam-v3.5.ckpt")
+    agent.carry_out(normalize_actions(EQUIP_D_AXE, env), env)
     agent.gather_items('log', LOGS_TO_CHOP, env, OVERGROUND_MODE)
     agent.stand_still(env)
 
@@ -38,7 +40,9 @@ def main():
     # Then rotate the camera to look at the ground and prepare the area for mining cobblestone
     craft_wooden_pickaxe = normalize_actions(CRAFT_W_PICKAXE, env)
     mine_down = normalize_actions(MINE_DOWN, env)
-    agent.carry_out(craft_wooden_pickaxe + mine_down, env)
+    place_torch = normalize_actions(PLACE_TORCH, env)
+    mine_straight = normalize_actions(MINE_STRAIGHT, env)
+    agent.carry_out(craft_wooden_pickaxe + mine_down + place_torch + mine_straight, env)
 
     # Recreate the model, so it can fit to the new action mode (underground in that specific case)
     # and once again pass it to the agent and load new weights.
@@ -51,14 +55,16 @@ def main():
     # Craft a stone pickaxe and a furnace. Prepare for mining iron ore.
     craft_stone_pickaxe = normalize_actions(CRAFT_S_PICKAXE, env)
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
-    mine_straight = normalize_actions(MINE_STRAIGHT, env)
-    agent.carry_out(craft_stone_pickaxe + craft_furnace + mine_straight, env)
+    agent.carry_out(craft_stone_pickaxe + craft_furnace, env)
+    agent.carry_out(normalize_actions(EQUIP_D_PICKAXE, env), env)
 
     agent.gather_items('iron_ore', IRON_TO_MINE, env, UNDERGROUND_MODE)
 
     smelt_iron = normalize_actions(SMELT_IRON, env)
     craft_iron_pickaxe = normalize_actions(CRAFT_I_PICKAXE, env)
     agent.carry_out(smelt_iron + craft_iron_pickaxe, env)
+
+    agent.gather_items('diamond', DIAMONDS_TO_MINE, env, UNDERGROUND_MODE)
 
     print(agent.obs['inventory'])
 
