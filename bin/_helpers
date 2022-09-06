@@ -1,0 +1,77 @@
+#!bash
+
+envs_activate_path="$(pwd)/envs/bin/activate"
+manage_py_path="$(pwd)/manage.py"
+
+has_py() {
+  if [[ -x $(command -v python3) ]]; then 
+    return 0
+  else
+    return 1
+  fi
+}
+
+code() {
+  if [ -x "$(command -v code-insiders)" ]
+  then
+    code-insiders $@
+  else
+    code $@
+  fi
+}
+
+build(){
+  cd ./mainapp-ui
+  npm run build
+}
+
+migrate(){
+  python $manage_py_path migrate
+}
+
+collect_static(){
+  python $manage_py_path collectstatic --noinput
+}
+
+run_server(){
+  python $manage_py_path runserver
+}
+
+start_app(){
+  source $envs_activate_path
+
+  build
+  collect_static
+  run_server
+
+}
+
+has_static(){
+  if [ -d static ]; then 
+    return 0
+  else 
+    return 1
+  fi
+}
+
+react_npm_init(){
+  if ! has_static; then
+    mkdir ./static
+  fi
+
+  cd ./mainapp-ui
+  npm install
+}
+
+py_envs_django_set(){
+
+  python3 -m venv envs
+  source $envs_activate_path
+
+  pip install django
+  pip install djangorestframework
+  pip install Pillow
+
+  migrate
+
+}

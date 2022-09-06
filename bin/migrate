@@ -1,0 +1,9 @@
+#!bash
+
+
+envs_activate_path="$(pwd)/envs/bin/activate"
+manage_py_path="$(pwd)/manage.py"
+
+source $envs_activate_path
+
+python $manage_py_path migrate

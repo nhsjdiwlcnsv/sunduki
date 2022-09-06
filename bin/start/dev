@@ -1,0 +1,9 @@
+#!bash
+
+set -e
+
+. bin/_helpers
+ 
+start_app
+
+code .
