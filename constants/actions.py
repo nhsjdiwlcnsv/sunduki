@@ -63,8 +63,8 @@ PLACE_TORCH = place('torch')
 # equip=True means that the item will be equipped after crafting.
 # quant means the number of times the item will be crafted.
 CRAFT_W_PICKAXE = craft_on_crafting_table('wooden_pickaxe', equip=True, optional=CRAFT_BASIC_TOOLS)
-CRAFT_S_PICKAXE = craft_on_crafting_table('stone_pickaxe', equip=True, quant=S_PICKAXES_QUANT)
-CRAFT_I_PICKAXE = craft_on_crafting_table('iron_pickaxe', equip=True, quant=2)
+CRAFT_S_PICKAXE = craft_on_crafting_table('stone_pickaxe', equip=False, quant=S_PICKAXES_QUANT)
+CRAFT_I_PICKAXE = craft_on_crafting_table('iron_pickaxe', equip=False, quant=2)
 CRAFT_FURNACE = craft_on_crafting_table('furnace')
 
 MINE_STRAIGHT = {
@@ -72,7 +72,7 @@ MINE_STRAIGHT = {
         '[180, 0]': 1,
         '[-90, 0]': 1,
     },
-    'attack': {'1': 60},
+    'attack': {'1': 90},
 }
 
 SMELT_IRON = {
@@ -80,3 +80,7 @@ SMELT_IRON = {
     'nearbySmelt': {'iron_ingot': IRON_TO_MINE},
     **REMOVE_BLOCK
 }
+
+EQUIP_D_AXE = {'equip': {'diamond_axe': 1}}
+
+EQUIP_D_PICKAXE = {'equip': {'diamond_pickaxe': 1}}

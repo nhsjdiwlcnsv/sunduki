@@ -8,9 +8,10 @@ LOGS_TO_CHOP = 5
 COBBLESTONE_TO_MINE = 17
 # Iron is only used for crafting 1 iron pickaxe. The only iron pickaxe will be later used for mining diamonds.
 IRON_TO_MINE = 3
+DIAMONDS_TO_MINE = 1
 
 # The number of sticks is calculated as follows:
-STICKS_QUANT = math.floor(((LOGS_TO_CHOP * 4) - 7) / 4)
+STICKS_QUANT = math.floor(((LOGS_TO_CHOP * 4) - 7) / 2)
 # The number of stone pickaxes is calculated as follows:
 S_PICKAXES_QUANT = math.floor((COBBLESTONE_TO_MINE - 8) / 3)
 # The total number of coal in bot's starting inventory is 5, but 1 coal should be left for smelting iron,

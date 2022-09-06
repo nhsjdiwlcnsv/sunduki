@@ -1,5 +1,5 @@
 # Seed that is used to generate the world.
-SEED = 203
+SEED = 46353
 
 # The maximum number of steps the bot can take during each session.
 MAX_STEPS = 150_000

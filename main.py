@@ -32,6 +32,7 @@ def main():
 
     # Load the weights from the given path and gather some wood acting in the overground mode
     agent.load_brain("weights/adam-v3.5/adam-v3.5.ckpt")
+    agent.carry_out(normalize_actions(EQUIP_D_AXE, env), env)
     agent.gather_items('log', LOGS_TO_CHOP, env, OVERGROUND_MODE)
     agent.stand_still(env)
 
@@ -55,12 +56,15 @@ def main():
     craft_stone_pickaxe = normalize_actions(CRAFT_S_PICKAXE, env)
     craft_furnace = normalize_actions(CRAFT_FURNACE, env)
     agent.carry_out(craft_stone_pickaxe + craft_furnace, env)
+    agent.carry_out(normalize_actions(EQUIP_D_PICKAXE, env), env)
 
     agent.gather_items('iron_ore', IRON_TO_MINE, env, UNDERGROUND_MODE)
 
     smelt_iron = normalize_actions(SMELT_IRON, env)
     craft_iron_pickaxe = normalize_actions(CRAFT_I_PICKAXE, env)
     agent.carry_out(smelt_iron + craft_iron_pickaxe, env)
+
+    agent.gather_items('diamond', DIAMONDS_TO_MINE, env, UNDERGROUND_MODE)
 
     print(agent.obs['inventory'])
 
