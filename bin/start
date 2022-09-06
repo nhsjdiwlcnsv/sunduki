@@ -1,0 +1,7 @@
+#!bash
+
+set -e
+
+. bin/_helpers
+
+python3 main.py
