@@ -1,0 +1,21 @@
+#!bash
+
+envs_activate_path="$(pwd)/envs/bin/activate"
+manage_py_path="$(pwd)/manage.py"
+
+has_py() {
+  if [[ -x $(command -v python3) ]]; then 
+    return 0
+  else
+    return 1
+  fi
+}
+
+code() {
+  if [ -x "$(command -v code-insiders)" ]
+  then
+    code-insiders $@
+  else
+    code $@
+  fi
+}

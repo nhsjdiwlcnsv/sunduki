@@ -1,0 +1,16 @@
+#!bash
+
+set -e
+
+. bin/_helpers
+
+if has_py; then 
+
+  pip3 install --upgrade minerl
+
+  python3 main.py
+
+else
+  echo "Error: Python isn't installed, please install python on the source website(https://www.python.org/downloads/)"
+fi
+
